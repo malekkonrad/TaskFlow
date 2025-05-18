@@ -1,0 +1,27 @@
+@model IEnumerable<TaskFlow.Models.User>
+
+@{
+    ViewData["Title"] = "Lista użytkowników";
+}
+
+<h2>Lista użytkowników</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Login</th>
+            <th>Rola</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var user in Model)
+    {
+        <tr>
+            <td>@user.Id</td>
+            <td>@user.UserName</td>
+            <td>@user.Role</td>
+        </tr>
+    }
+    </tbody>
+</table>

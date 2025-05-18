@@ -1,0 +1,54 @@
+@model TaskFlow.Models.User
+
+@{
+    ViewData["Title"] = "Dodaj użytkownika";
+}
+
+<h2>Dodaj użytkownika</h2>
+
+<form asp-action="AddUser" method="post">
+    <div class="form-group">
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Role">Rola</label>
+        <select asp-for="Role" class="form-control">
+            <option value="User">User</option>
+            <option value="Admin">Admin</option>
+        </select>
+        <span asp-validation-for="Role" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="password">Hasło</label>
+        <input type="password" name="password" class="form-control" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Dodaj użytkownika</button>
+</form>
+
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        <h4>Wystąpił błąd:</h4>
+        <p>@ViewBag.Error</p>
+        <pre>@ViewBag.StackTrace</pre>
+    </div>
+}
+
+@if (ViewBag.Success != null)
+{
+    <div class="alert alert-success">
+        <p>@ViewBag.Success</p>
+    </div>
+}
+
+<div>
+    <p>ModelState.IsValid: @ViewBag.IsValid</p>
+    <p>Hasło: @ViewBag.Password</p>
+    <p>Rola w sesji: @ViewBag.RoleInSession</p>
+</div>

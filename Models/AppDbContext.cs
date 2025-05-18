@@ -22,7 +22,7 @@ public class AppDbContext : DbContext
             Id = 1,
             UserName = "admin",
             Password = hash,
-            Role = "Admin",
+            Role = "ADMIN",
             ApiToken = Guid.NewGuid().ToString()
         };
         modelBuilder.Entity<User>().HasData(admin);

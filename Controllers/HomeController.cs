@@ -29,4 +29,13 @@ public class HomeController : Controller
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
+
+
+    // W HomeController.cs
+    public IActionResult AccessDenied()
+    {
+        ViewBag.Message = HttpContext.Session.GetString("AccessDeniedMessage") ?? 
+            "Nie masz uprawnień do wykonania tej operacji.";
+        return View();
+    }
 }

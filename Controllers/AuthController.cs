@@ -14,7 +14,7 @@ public class AuthController : Controller
     public AuthController(AppDbContext context)
     {
         _context = context;
-        EnsureAdminExists();
+        // EnsureAdminExists();
     }
 
 
@@ -65,22 +65,22 @@ public class AuthController : Controller
         return Convert.ToHexString(md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password)));
     }
 
-    private void EnsureAdminExists()
-    {
-        if (!_context.Users.Any())
-        {
-            var admin = new User
-            {
-                UserName = "admin",
-                Password = HashPassword("admin123"),
-                Role = "Admin",
-                ApiToken = Guid.NewGuid().ToString()
-            };
+    // private void EnsureAdminExists()
+    // {
+    //     if (!_context.Users.Any())
+    //     {
+    //         var admin = new User
+    //         {
+    //             UserName = "admin",
+    //             Password = HashPassword("1234"),
+    //             Role = "ADMIN",
+    //             ApiToken = Guid.NewGuid().ToString()
+    //         };
 
-            _context.Users.Add(admin);
-            _context.SaveChanges();
-        }
-    }
+    //         _context.Users.Add(admin);
+    //         _context.SaveChanges();
+    //     }
+    // }
 }
 
 

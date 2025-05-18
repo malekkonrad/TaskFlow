@@ -10,10 +10,10 @@ public class User
     [Required]
     public string UserName { get; set; } = string.Empty;
 
-    [Required]
+
     public string Password { get; set; } = string.Empty;
 
-    [Required]
+    
     public string ApiToken { get; set; } = string.Empty;  // REST API
 
     // public bool isAdmin { get; set; } = false;
