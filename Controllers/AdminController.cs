@@ -48,9 +48,6 @@ public IActionResult AddUser(User user, string password)
         }
         if (ModelState.IsValid)
             {
-                // user.Password = HashPassword(password);
-                // user.ApiToken = Guid.NewGuid().ToString();
-
                 // Wstaw wydruk sprawdzający obiekt
                 System.Diagnostics.Debug.WriteLine($"UserName: {user.UserName}, Role: {user.Role}");
 
