@@ -14,10 +14,11 @@ public class User
     public string Password { get; set; } = string.Empty;
 
     [Required]
-    public string Token { get; set; }   // REST API
+    public string ApiToken { get; set; } = string.Empty;  // REST API
 
-    public bool isAdmin { get; set; } = false;
+    // public bool isAdmin { get; set; } = false;
+    public string Role { get; set; } = "User"; // "Admin", "User"
 
-    public ICollection<Project> Projects { get; set; } = new List<Project>();
-    public ICollection<Task> AssignedTasks { get; set; } = new List<Task>();
+    // public ICollection<Project> Projects { get; set; } = new List<Project>();
+    // public ICollection<Task> AssignedTasks { get; set; } = new List<Task>();
 }

@@ -17,7 +17,7 @@ public class Project
     public int OwnerId { get; set; }    // czy to jest potrzebne?
     public User Owner { get; set; }
 
-    public ICollection<User> Users { get; set; } = new List<User>();    
+    // public ICollection<User> Users { get; set; } = new List<User>();    
 
     public ICollection<Task> Tasks { get; set; } = new List<Task>();
 }
