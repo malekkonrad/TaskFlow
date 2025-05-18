@@ -4,6 +4,7 @@ using TaskFlow.Models;
 
 namespace TaskFlow.Controllers;
 
+[SessionAuthorize]
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
