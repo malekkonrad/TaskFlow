@@ -11,7 +11,7 @@ builder.Services.AddDistributedMemoryCache();
 // SESSION
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromSeconds(10);
+    options.IdleTimeout = TimeSpan.FromMinutes(10);
     options.Cookie.HttpOnly = true;//plik cookie jest niedostępny przez skrypt po stronie klienta
     options.Cookie.IsEssential = true;//pliki cookie sesji będą zapisywane dzięki czemu sesje będzie mogła być śledzona podczas nawigacji lub przeładowania strony
 });
