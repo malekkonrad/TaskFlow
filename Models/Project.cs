@@ -16,8 +16,10 @@ public class Project
     [Required]
     public int OwnerId { get; set; }    // czy to jest potrzebne?
     public User Owner { get; set; }
+   
 
-    // public ICollection<User> Users { get; set; } = new List<User>();    
+    // Relacja z członkami projektu
+    public ICollection<ProjectMember> Members { get; set; } = new List<ProjectMember>();
 
     public ICollection<Task> Tasks { get; set; } = new List<Task>();
 }

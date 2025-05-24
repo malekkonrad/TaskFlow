@@ -9,16 +9,30 @@ public class User
 
     [Required]
     public string UserName { get; set; } = string.Empty;
-
-
     public string Password { get; set; } = string.Empty;
-
-    
     public string ApiToken { get; set; } = string.Empty;  // REST API
 
-    // public bool isAdmin { get; set; } = false;
-    public string Role { get; set; } = "User"; // "Admin", "User"
+    public string Role { get; set; } = "User"; // "Admin", "User" - pomyśleć o enumie
 
-    // public ICollection<Project> Projects { get; set; } = new List<Project>();
-    // public ICollection<Task> AssignedTasks { get; set; } = new List<Task>();
+
+    // Projekty jako właściciel
+    public ICollection<Project> OwnedProjects { get; set; } = new List<Project>();
+
+    // Członkostwo w projektach
+    public ICollection<ProjectMember> ProjectMemberships { get; set; } = new List<ProjectMember>();
+    
+
+    // Taski 
+    public ICollection<Task> AssignedTasks { get; set; } = new List<Task>();
+
+    // Komentarze
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    // Historia aktywności
+    public ICollection<TaskHistory> ActivityHistory { get; set; } = new List<TaskHistory>();
+
+
+
+
+
 }
