@@ -31,8 +31,10 @@ public class AuthController : Controller
     public IActionResult Login(string username, string password)
     {
         var user = _context.Users.FirstOrDefault(u => u.UserName == username);
+        var id = _context.Users.FirstOrDefault(u => u.UserName == username)?.Id;
         if (user != null && VerifyPassword(password, user.Password))
         {
+            HttpContext.Session.SetString("Id", id.ToString());
             HttpContext.Session.SetString("Username", user.UserName);
             HttpContext.Session.SetString("Role", user.Role);
             return RedirectToAction("Index", "Home");
