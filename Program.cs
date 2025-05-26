@@ -10,6 +10,34 @@ builder.Services.AddScoped<IPasswordService, PasswordService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+// Add services to the container.
+builder.Services.AddControllers();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+        { 
+            Title = "TaskFlow API", 
+            Version = "v1" 
+        });
+        
+        // Tylko API controllers w folderze Api
+        c.DocInclusionPredicate((name, api) => 
+        {
+            var actionDescriptor = api.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor;
+            return actionDescriptor?.ControllerTypeInfo.Namespace?.Contains("Controllers.Api") == true;
+        });
+    });
+}
+
+// Dodaj obsługę Web API
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
 
 builder.Services.AddDistributedMemoryCache();
 
@@ -41,9 +69,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
+
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
+    // app.UseSwagger();
+    // app.UseSwaggerUI();
     app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();

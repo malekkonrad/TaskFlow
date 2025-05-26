@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TaskFlow.Models;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
+using TaskFlow.Services;
 
 [AdminAuthorize]
 public class AdminController : Controller
@@ -30,23 +31,23 @@ public class AdminController : Controller
 
 
     [HttpPost]
-[ValidateAntiForgeryToken]
-public IActionResult AddUser(User user, string password)
-{
-    // Debugowanie wartości
-    ViewBag.IsValid = ModelState.IsValid;
-    ViewBag.Password = !string.IsNullOrEmpty(password) ? "Hasło podane" : "Brak hasła";
-    ViewBag.RoleInSession = HttpContext.Session.GetString("Role");
-
-    try
+    [ValidateAntiForgeryToken]
+    public IActionResult AddUser(User user, string password)
     {
-        
-        if (!string.IsNullOrEmpty(password))
+        // Debugowanie wartości
+        ViewBag.IsValid = ModelState.IsValid;
+        ViewBag.Password = !string.IsNullOrEmpty(password) ? "Hasło podane" : "Brak hasła";
+        ViewBag.RoleInSession = HttpContext.Session.GetString("Role");
+
+        try
         {
-            user.Password = HashPassword(password);
-            user.ApiToken = Guid.NewGuid().ToString();
-        }
-        if (ModelState.IsValid)
+
+            if (!string.IsNullOrEmpty(password))
+            {
+                user.Password = new PasswordService().HashPassword(password);
+                user.ApiToken = Guid.NewGuid().ToString();
+            }
+            if (ModelState.IsValid)
             {
                 // Wstaw wydruk sprawdzający obiekt
                 System.Diagnostics.Debug.WriteLine($"UserName: {user.UserName}, Role: {user.Role}");
@@ -57,21 +58,19 @@ public IActionResult AddUser(User user, string password)
                 ViewBag.Success = "Użytkownik dodany pomyślnie";
                 return RedirectToAction("Index");
             }
-    }
-    catch (Exception ex)
-    {
-        ViewBag.Error = ex.Message;
-        ViewBag.StackTrace = ex.StackTrace;
-        ModelState.AddModelError("", "Błąd: " + ex.Message);
-    }
-    
-    // Dodaj komunikat do widoku
-    return View(user);
-}
+        }
+        catch (Exception ex)
+        {
+            ViewBag.Error = ex.Message;
+            ViewBag.StackTrace = ex.StackTrace;
+            ModelState.AddModelError("", "Błąd: " + ex.Message);
+        }
 
-    private string HashPassword(string password)
-    {
-        using var md5 = System.Security.Cryptography.MD5.Create();
-        return Convert.ToHexString(md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password)));
+        // Dodaj komunikat do widoku
+        return View(user);
     }
+
+    
+
+    
 }
