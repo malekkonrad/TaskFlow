@@ -16,11 +16,12 @@ public class ProjectApiController : ControllerBase
         _context = context;
     }
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
+    [HttpGet]   // GET: api/ProjectApi/
+    public async Task<ActionResult<IEnumerable<ProjectDTO>>> GetProjects()
     {
         if (!IsAuthorized(Request)) return Unauthorized();
-        return await _context.Projects.ToListAsync();
+        if (_context.Projects == null) return NotFound(); 
+        return await _context.Projects.Select(x => ItemToDTO(x)).ToListAsync();
     }
 
     private bool IsAuthorized(HttpRequest request)
@@ -41,22 +42,22 @@ public class ProjectApiController : ControllerBase
         return user != null;
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Project>> GetProject(int id)
+    [HttpGet("{id}")] // GET: api/ProjectApi/{id}
+    public async Task<ActionResult<ProjectDTO>> GetProject(int id)
     {
         if (!IsAuthorized(Request)) return Unauthorized();
-        
-        var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == id);
+        if (_context.Projects == null) return NotFound(); 
 
+        var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
         if (project == null) return NotFound();
-        return project;
+        return ItemToDTO(project);
     }
 
-    [HttpPost]
-    public async Task<ActionResult<Project>> CreateProject(string name, string description)
+    [HttpPost]  // POST: api/ProjectApi/
+    public async Task<ActionResult<ProjectDTO>> CreateProject(ProjectDTO projectDTO)
     {
         if (!IsAuthorized(Request)) return Unauthorized();
+        if (_context.Projects == null) return NotFound(); 
 
         var id_owner = int.Parse(HttpContext.Session.GetString("Id") ?? "2");
         Console.WriteLine($"Creating project for owner ID: {id_owner}");
@@ -65,18 +66,45 @@ public class ProjectApiController : ControllerBase
 
         var project = new Project
         {
-            Name = name,
+            Name = projectDTO.Name,
             OwnerId = id_owner,
             // Owner = owner, // Set the owner of the project
-            Description = description, // Add this line
+            Description = projectDTO.Description, // Add this line
             Members = new List<ProjectMember>(), // Initialize Members collection
-            // Tasks = new List<Task>(), // Initialize Tasks collection
-            
-            IsPublic = false // Default value, can be changed later
+                                                 // Tasks = new List<Task>(), // Initialize Tasks collection
+            IsPublic = projectDTO.IsPublic // Default value, can be changed later
         };
 
         _context.Projects.Add(project);
         await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetProject), new { id = project.Id }, project);
+        return CreatedAtAction(nameof(GetProject), new { id = project.Id }, ItemToDTO(project));
     }
+
+
+    [HttpPut("{id}")] // PUT: api/ProjectApi/{id}
+    public async Task<IActionResult> UpdateProject(int id, ProjectDTO projectDTO)
+    {
+        if (!IsAuthorized(Request)) return Unauthorized();
+        if (_context.Projects == null) return NotFound(); 
+
+        var project = await _context.Projects.FindAsync(id);
+        if (project == null) return NotFound();
+
+        project.Name = projectDTO.Name;
+        project.Description = projectDTO.Description;
+        project.IsPublic = projectDTO.IsPublic;
+
+        _context.Entry(project).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    private static ProjectDTO ItemToDTO(Project project) => new ProjectDTO
+    {
+        Name = project.Name,
+        Description = project.Description,
+        IsPublic = project.IsPublic
+    };
 }
+    
