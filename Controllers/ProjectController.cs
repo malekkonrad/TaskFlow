@@ -22,7 +22,9 @@ public class ProjectController : Controller
     // GET: Project
     public async Task<IActionResult> Index()
     {
-        var appDbContext = _context.Projects.Include(p => p.Owner);
+        var currentUserId = GetCurrentUserId();
+        var appDbContext = _context.Projects.Include(p => p.Owner).Where(p => p.IsPublic || p.OwnerId == currentUserId)
+            .OrderByDescending(p => p.Id);
         return View(await appDbContext.ToListAsync());
     }
 
@@ -57,15 +59,19 @@ public class ProjectController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Name,Description,IsPublic,OwnerId")] Project project)
+    public async Task<IActionResult> Create([Bind("Id,Name,Description,IsPublic")] Project project)
     {
         if (ModelState.IsValid)
         {
+            project.OwnerId = GetCurrentUserId();
+
+            Console.WriteLine($"Creating project: {project.Name}");
             _context.Add(project);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
         ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName", project.OwnerId);
+        Console.WriteLine("Model state is invalid, returning to create view.");
         return View(project);
     }
 
@@ -164,5 +170,17 @@ public class ProjectController : Controller
     {
         return (_context.Projects?.Any(e => e.Id == id)).GetValueOrDefault();
     }
+    
+    private int GetCurrentUserId()
+    {
+        var userId = HttpContext.Session.GetString("Id");
+        if (string.IsNullOrEmpty(userId))
+        {
+            throw new UnauthorizedAccessException("User is not logged in.");
+        }
+        return int.Parse(userId);
+    }
+
+
 }
 
