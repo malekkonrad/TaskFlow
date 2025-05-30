@@ -7,156 +7,157 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Models;
 
-namespace TaskFlow.Controllers
+namespace TaskFlow.Controllers;
+
+[SessionAuthorize]
+public class StatusController : Controller
 {
-    public class StatusController : Controller
+    private readonly AppDbContext _context;
+
+    public StatusController(AppDbContext context)
     {
-        private readonly AppDbContext _context;
+        _context = context;
+    }
 
-        public StatusController(AppDbContext context)
+    // GET: Status
+    public async Task<IActionResult> Index()
+    {
+        return _context.Statuses != null ?
+                    View(await _context.Statuses.ToListAsync()) :
+                    Problem("Entity set 'AppDbContext.Statuses'  is null.");
+    }
+
+    // GET: Status/Details/5
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null || _context.Statuses == null)
         {
-            _context = context;
+            return NotFound();
         }
 
-        // GET: Status
-        public async Task<IActionResult> Index()
+        var status = await _context.Statuses
+            .FirstOrDefaultAsync(m => m.Id == id);
+        if (status == null)
         {
-              return _context.Statuses != null ? 
-                          View(await _context.Statuses.ToListAsync()) :
-                          Problem("Entity set 'AppDbContext.Statuses'  is null.");
+            return NotFound();
         }
 
-        // GET: Status/Details/5
-        public async Task<IActionResult> Details(int? id)
+        return View(status);
+    }
+
+    // GET: Status/Create
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    // POST: Status/Create
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create([Bind("Id,Name")] Status status)
+    {
+        if (ModelState.IsValid)
         {
-            if (id == null || _context.Statuses == null)
-            {
-                return NotFound();
-            }
-
-            var status = await _context.Statuses
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (status == null)
-            {
-                return NotFound();
-            }
-
-            return View(status);
-        }
-
-        // GET: Status/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Status/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Status status)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(status);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(status);
-        }
-
-        // GET: Status/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.Statuses == null)
-            {
-                return NotFound();
-            }
-
-            var status = await _context.Statuses.FindAsync(id);
-            if (status == null)
-            {
-                return NotFound();
-            }
-            return View(status);
-        }
-
-        // POST: Status/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Status status)
-        {
-            if (id != status.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(status);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!StatusExists(status.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(status);
-        }
-
-        // GET: Status/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Statuses == null)
-            {
-                return NotFound();
-            }
-
-            var status = await _context.Statuses
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (status == null)
-            {
-                return NotFound();
-            }
-
-            return View(status);
-        }
-
-        // POST: Status/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Statuses == null)
-            {
-                return Problem("Entity set 'AppDbContext.Statuses'  is null.");
-            }
-            var status = await _context.Statuses.FindAsync(id);
-            if (status != null)
-            {
-                _context.Statuses.Remove(status);
-            }
-            
+            _context.Add(status);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        return View(status);
+    }
 
-        private bool StatusExists(int id)
+    // GET: Status/Edit/5
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null || _context.Statuses == null)
         {
-          return (_context.Statuses?.Any(e => e.Id == id)).GetValueOrDefault();
+            return NotFound();
         }
+
+        var status = await _context.Statuses.FindAsync(id);
+        if (status == null)
+        {
+            return NotFound();
+        }
+        return View(status);
+    }
+
+    // POST: Status/Edit/5
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Status status)
+    {
+        if (id != status.Id)
+        {
+            return NotFound();
+        }
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                _context.Update(status);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!StatusExists(status.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(Index));
+        }
+        return View(status);
+    }
+
+    // GET: Status/Delete/5
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null || _context.Statuses == null)
+        {
+            return NotFound();
+        }
+
+        var status = await _context.Statuses
+            .FirstOrDefaultAsync(m => m.Id == id);
+        if (status == null)
+        {
+            return NotFound();
+        }
+
+        return View(status);
+    }
+
+    // POST: Status/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        if (_context.Statuses == null)
+        {
+            return Problem("Entity set 'AppDbContext.Statuses'  is null.");
+        }
+        var status = await _context.Statuses.FindAsync(id);
+        if (status != null)
+        {
+            _context.Statuses.Remove(status);
+        }
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
+    private bool StatusExists(int id)
+    {
+        return (_context.Statuses?.Any(e => e.Id == id)).GetValueOrDefault();
     }
 }
+

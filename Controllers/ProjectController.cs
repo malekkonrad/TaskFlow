@@ -7,161 +7,162 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Models;
 
-namespace TaskFlow.Controllers
+namespace TaskFlow.Controllers;
+
+[SessionAuthorize]
+public class ProjectController : Controller
 {
-    public class ProjectController : Controller
+    private readonly AppDbContext _context;
+
+    public ProjectController(AppDbContext context)
     {
-        private readonly AppDbContext _context;
+        _context = context;
+    }
 
-        public ProjectController(AppDbContext context)
+    // GET: Project
+    public async Task<IActionResult> Index()
+    {
+        var appDbContext = _context.Projects.Include(p => p.Owner);
+        return View(await appDbContext.ToListAsync());
+    }
+
+    // GET: Project/Details/5
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null || _context.Projects == null)
         {
-            _context = context;
+            return NotFound();
         }
 
-        // GET: Project
-        public async Task<IActionResult> Index()
+        var project = await _context.Projects
+            .Include(p => p.Owner)
+            .FirstOrDefaultAsync(m => m.Id == id);
+        if (project == null)
         {
-            var appDbContext = _context.Projects.Include(p => p.Owner);
-            return View(await appDbContext.ToListAsync());
+            return NotFound();
         }
 
-        // GET: Project/Details/5
-        public async Task<IActionResult> Details(int? id)
+        return View(project);
+    }
+
+    // GET: Project/Create
+    public IActionResult Create()
+    {
+        ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName");
+        return View();
+    }
+
+    // POST: Project/Create
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create([Bind("Id,Name,Description,IsPublic,OwnerId")] Project project)
+    {
+        if (ModelState.IsValid)
         {
-            if (id == null || _context.Projects == null)
-            {
-                return NotFound();
-            }
-
-            var project = await _context.Projects
-                .Include(p => p.Owner)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            return View(project);
-        }
-
-        // GET: Project/Create
-        public IActionResult Create()
-        {
-            ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName");
-            return View();
-        }
-
-        // POST: Project/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,IsPublic,OwnerId")] Project project)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(project);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName", project.OwnerId);
-            return View(project);
-        }
-
-        // GET: Project/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.Projects == null)
-            {
-                return NotFound();
-            }
-
-            var project = await _context.Projects.FindAsync(id);
-            if (project == null)
-            {
-                return NotFound();
-            }
-            ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName", project.OwnerId);
-            return View(project);
-        }
-
-        // POST: Project/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,IsPublic,OwnerId")] Project project)
-        {
-            if (id != project.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(project);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProjectExists(project.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName", project.OwnerId);
-            return View(project);
-        }
-
-        // GET: Project/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Projects == null)
-            {
-                return NotFound();
-            }
-
-            var project = await _context.Projects
-                .Include(p => p.Owner)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            return View(project);
-        }
-
-        // POST: Project/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Projects == null)
-            {
-                return Problem("Entity set 'AppDbContext.Projects'  is null.");
-            }
-            var project = await _context.Projects.FindAsync(id);
-            if (project != null)
-            {
-                _context.Projects.Remove(project);
-            }
-            
+            _context.Add(project);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName", project.OwnerId);
+        return View(project);
+    }
 
-        private bool ProjectExists(int id)
+    // GET: Project/Edit/5
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null || _context.Projects == null)
         {
-          return (_context.Projects?.Any(e => e.Id == id)).GetValueOrDefault();
+            return NotFound();
         }
+
+        var project = await _context.Projects.FindAsync(id);
+        if (project == null)
+        {
+            return NotFound();
+        }
+        ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName", project.OwnerId);
+        return View(project);
+    }
+
+    // POST: Project/Edit/5
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,IsPublic,OwnerId")] Project project)
+    {
+        if (id != project.Id)
+        {
+            return NotFound();
+        }
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                _context.Update(project);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProjectExists(project.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(Index));
+        }
+        ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName", project.OwnerId);
+        return View(project);
+    }
+
+    // GET: Project/Delete/5
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null || _context.Projects == null)
+        {
+            return NotFound();
+        }
+
+        var project = await _context.Projects
+            .Include(p => p.Owner)
+            .FirstOrDefaultAsync(m => m.Id == id);
+        if (project == null)
+        {
+            return NotFound();
+        }
+
+        return View(project);
+    }
+
+    // POST: Project/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        if (_context.Projects == null)
+        {
+            return Problem("Entity set 'AppDbContext.Projects'  is null.");
+        }
+        var project = await _context.Projects.FindAsync(id);
+        if (project != null)
+        {
+            _context.Projects.Remove(project);
+        }
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
+    private bool ProjectExists(int id)
+    {
+        return (_context.Projects?.Any(e => e.Id == id)).GetValueOrDefault();
     }
 }
+
