@@ -13,7 +13,6 @@ public class AppDbContext : DbContext
     public DbSet<Comment> Comments { get; set; }
     public DbSet<TaskHistory> TaskHistories { get; set; }
     public DbSet<ProjectMember> ProjectMembers { get; set; }
-    public DbSet<ProjectInvitation> ProjectInvitations { get; set; }
     public DbSet<Status> Statuses { get; set; }
 
 
@@ -57,18 +56,18 @@ public class AppDbContext : DbContext
             .HasForeignKey(t => t.AssigneeId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Zaproszenia - usuń przy usunięciu usera
-        modelBuilder.Entity<ProjectInvitation>()
-            .HasOne(pi => pi.InvitedUser)
-            .WithMany()
-            .HasForeignKey(pi => pi.InvitedUserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // // Zaproszenia - usuń przy usunięciu usera
+        // modelBuilder.Entity<ProjectInvitation>()
+        //     .HasOne(pi => pi.InvitedUser)
+        //     .WithMany()
+        //     .HasForeignKey(pi => pi.InvitedUserId)
+        //     .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<ProjectInvitation>()
-            .HasOne(pi => pi.InvitedBy)
-            .WithMany()
-            .HasForeignKey(pi => pi.InvitedById)
-            .OnDelete(DeleteBehavior.Cascade);
+        // modelBuilder.Entity<ProjectInvitation>()
+        //     .HasOne(pi => pi.InvitedBy)
+        //     .WithMany()
+        //     .HasForeignKey(pi => pi.InvitedById)
+        //     .OnDelete(DeleteBehavior.Cascade);
 
         // Dodaj unikalny indeks dla ProjectMember
         modelBuilder.Entity<ProjectMember>()

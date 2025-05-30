@@ -3,7 +3,10 @@ using TaskFlow.Models;
 using TaskFlow.Services;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
+// builder.Services.AddDbContext<CommentContext>(options =>
+//     options.UseSqlite(builder.Configuration.GetConnectionString("CommentContext") ?? throw new InvalidOperationException("Connection string 'CommentContext' not found.")));
 
 // Add services to the container.
 builder.Services.AddScoped<IPasswordService, PasswordService>();
@@ -51,7 +54,7 @@ builder.Services.AddSession(options =>
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=database.db"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("AppDbContext")));
 
 // COOKIES
 // builder.Services.AddAuthentication("MyCookieAuth")

@@ -31,8 +31,4 @@ public class User
     // Historia aktywności
     public ICollection<TaskHistory> ActivityHistory { get; set; } = new List<TaskHistory>();
 
-
-
-
-
 }

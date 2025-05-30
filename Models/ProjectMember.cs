@@ -21,6 +21,5 @@ public class ProjectMember
         public DateTime JoinedAt { get; set; } = DateTime.Now;
         public DateTime? InvitedAt { get; set; }
         public string InvitationStatus { get; set; } = "Accepted"; // Pending, Accepted, Declined
-        public int? InvitedById { get; set; }
-        public User? InvitedBy { get; set; }
+        
     }
