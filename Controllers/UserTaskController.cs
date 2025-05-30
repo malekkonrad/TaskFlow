@@ -38,6 +38,8 @@ public class UserTaskController : Controller
             .Include(u => u.Assignee)
             .Include(u => u.Project)
             .Include(u => u.Status)
+            .Include(u => u.Comments)
+                .ThenInclude(c => c.Author)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (userTask == null)
         {

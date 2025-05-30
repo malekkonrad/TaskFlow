@@ -58,16 +58,59 @@ public class CommentController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Content,CreatedAt,TaskItemId,AuthorId")] Comment comment)
+    public async Task<IActionResult> Create([Bind("Content,TaskItemId")] Comment comment)
     {
         if (ModelState.IsValid)
         {
+            Console.WriteLine("Creating comment for TaskItemId: " + comment.TaskItemId);
+            comment.AuthorId = GetCurrentUserId();
+            comment.CreatedAt = DateTime.Now;
+
+
+
+            // DEBUG: Sprawdź wartości przed zapisem
+            Console.WriteLine($"=== DEBUG COMMENT CREATE ===");
+            Console.WriteLine($"TaskItemId: {comment.TaskItemId}");
+            Console.WriteLine($"AuthorId: {comment.AuthorId}");
+            Console.WriteLine($"Content: {comment.Content}");
+            
+            // Sprawdź czy task istnieje
+            var taskExists = await _context.Tasks.AnyAsync(t => t.Id == comment.TaskItemId);
+            Console.WriteLine($"Task exists: {taskExists}");
+            
+            // Sprawdź czy user istnieje
+            var userExists = await _context.Users.AnyAsync(u => u.Id == comment.AuthorId);
+            Console.WriteLine($"User exists: {userExists}");
+            
+            if (!taskExists)
+            {
+                Console.WriteLine($"ERROR: Task with ID {comment.TaskItemId} does not exist!");
+                return RedirectToAction("Index", "UserTask");
+            }
+            
+            if (!userExists)
+            {
+                Console.WriteLine($"ERROR: User with ID {comment.AuthorId} does not exist!");
+                return RedirectToAction("Login", "Auth");
+            }
+
+
+
+
+
+
+
+
+
+            Console.WriteLine("AuthorId: " + comment.AuthorId);
             _context.Add(comment);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Details", "UserTask", new { id = comment.TaskItemId });
         }
-        ViewData["AuthorId"] = new SelectList(_context.Set<User>(), "Id", "UserName", comment.AuthorId);
-        return View(comment);
+        Console.WriteLine("w w w w Creating comment for TaskItemId: " + comment.TaskItemId);
+        // ViewData["AuthorId"] = new SelectList(_context.Set<User>(), "Id", "UserName", comment.AuthorId);
+        // return View(comment);
+        return RedirectToAction("Details", "UserTask", new { id = comment.TaskItemId });
     }
 
     // GET: Comment/Edit/5
@@ -164,6 +207,16 @@ public class CommentController : Controller
     private bool CommentExists(int id)
     {
         return (_context.Comments?.Any(e => e.Id == id)).GetValueOrDefault();
+    }
+
+    private int GetCurrentUserId()
+    {
+        var userId = HttpContext.Session.GetString("Id");
+        if (string.IsNullOrEmpty(userId))
+        {
+            throw new UnauthorizedAccessException("User is not logged in.");
+        }
+        return int.Parse(userId);
     }
 }
 

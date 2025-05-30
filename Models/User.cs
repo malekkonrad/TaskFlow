@@ -26,7 +26,7 @@ public class User
     public ICollection<UserTask> AssignedTasks { get; set; } = new List<UserTask>();
 
     // Komentarze
-    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+    // public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
     // Historia aktywności
     public ICollection<TaskHistory> ActivityHistory { get; set; } = new List<TaskHistory>();

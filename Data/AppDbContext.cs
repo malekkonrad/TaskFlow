@@ -29,18 +29,7 @@ public class AppDbContext : DbContext
             .HasForeignKey(p => p.OwnerId)
             .OnDelete(DeleteBehavior.Cascade); // Zmiana na Cascade
 
-        // Pozostałe konfiguracje...
-        modelBuilder.Entity<ProjectMember>()
-            .HasOne(pm => pm.User)
-            .WithMany(u => u.ProjectMemberships)
-            .HasForeignKey(pm => pm.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<ProjectMember>()
-            .HasOne(pm => pm.Project)
-            .WithMany(p => p.Members)
-            .HasForeignKey(pm => pm.ProjectId)
-            .OnDelete(DeleteBehavior.Cascade);
+        
 
         // TaskHistory - zachowaj historię nawet po usunięciu usera (opcjonalnie)
         modelBuilder.Entity<TaskHistory>()
@@ -56,6 +45,60 @@ public class AppDbContext : DbContext
             .HasForeignKey(t => t.AssigneeId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        // Konfiguracja dla Task-Project relacji
+        modelBuilder.Entity<UserTask>()
+            .HasOne(t => t.Project)
+            .WithMany(p => p.Tasks)
+            .HasForeignKey(t => t.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserTask>()
+        .HasOne(t => t.Status)
+        .WithMany()
+        .HasForeignKey(t => t.StatusId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+        
+
+
+
+        modelBuilder.Entity<Comment>()
+        .HasOne(c => c.Task)
+        .WithMany(t => t.Comments)
+        .HasForeignKey(c => c.TaskItemId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+        // Konfiguracja relacji Comment-User (Author)
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.Author)
+            .WithMany()
+            .HasForeignKey(c => c.AuthorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+
+
+
+
+
+        // Pozostałe konfiguracje...
+        modelBuilder.Entity<ProjectMember>()
+            .HasOne(pm => pm.User)
+            .WithMany(u => u.ProjectMemberships)
+            .HasForeignKey(pm => pm.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ProjectMember>()
+            .HasOne(pm => pm.Project)
+            .WithMany(p => p.Members)
+            .HasForeignKey(pm => pm.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Dodaj unikalny indeks dla ProjectMember
+        modelBuilder.Entity<ProjectMember>()
+            .HasIndex(pm => new { pm.UserId, pm.ProjectId })
+            .IsUnique();
+
+        
         // // Zaproszenia - usuń przy usunięciu usera
         // modelBuilder.Entity<ProjectInvitation>()
         //     .HasOne(pi => pi.InvitedUser)
@@ -68,18 +111,6 @@ public class AppDbContext : DbContext
         //     .WithMany()
         //     .HasForeignKey(pi => pi.InvitedById)
         //     .OnDelete(DeleteBehavior.Cascade);
-
-        // Dodaj unikalny indeks dla ProjectMember
-        modelBuilder.Entity<ProjectMember>()
-            .HasIndex(pm => new { pm.UserId, pm.ProjectId })
-            .IsUnique();
-
-        // Konfiguracja dla Task-Project relacji
-        modelBuilder.Entity<UserTask>()
-            .HasOne(t => t.Project)
-            .WithMany(p => p.Tasks)
-            .HasForeignKey(t => t.ProjectId)
-            .OnDelete(DeleteBehavior.Cascade);
 
 
         // Dodanie domyślnego administratora
