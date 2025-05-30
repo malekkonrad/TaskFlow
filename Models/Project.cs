@@ -7,15 +7,15 @@ public class Project
     public int Id { get; set; }
 
     [Required]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     public bool IsPublic { get; set; } = false;
 
     [Required]
     public int OwnerId { get; set; }    // czy to jest potrzebne?
-    public User Owner { get; set; }
+    public User? Owner { get; set; }
    
 
     // Relacja z członkami projektu

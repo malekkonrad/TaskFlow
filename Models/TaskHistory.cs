@@ -9,14 +9,14 @@ public class TaskHistory
         
     [Required]
     public int TaskId { get; set; }
-    public UserTask Task { get; set; }
+    public UserTask? Task { get; set; }
     
     [Required]
     public int UserId { get; set; }
-    public User User { get; set; }
+    public User? User { get; set; }
     
     [Required]
-    public string Action { get; set; } // Created, Updated, Completed, Assigned, CommentAdded, StatusChanged, etc.
+    public string? Action { get; set; } // Created, Updated, Completed, Assigned, CommentAdded, StatusChanged, etc.
     // można też użyć enum, ale dla prostoty zostawiamy string    
     
     public string? OldValue { get; set; }
@@ -28,7 +28,7 @@ public class TaskHistory
     
     // Dodatkowe pola dla statystyk
     public int ProjectId { get; set; }
-    public Project Project { get; set; }
+    public Project? Project { get; set; }
     
     public TimeSpan? TimeSpent { get; set; } // Czas spędzony na zadaniu
     public string? Category { get; set; } // Task, Comment, Project, etc.

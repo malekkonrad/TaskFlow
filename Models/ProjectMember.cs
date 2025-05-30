@@ -9,11 +9,11 @@ public class ProjectMember
         
         [Required]
         public int UserId { get; set; }
-        public User User { get; set; }
+        public User? User { get; set; }
         
         [Required]
         public int ProjectId { get; set; }
-        public Project Project { get; set; }
+        public Project? Project { get; set; }
         
         [Required]
         public string Role { get; set; } = "Member"; // Owner, Admin, Member, Viewer
