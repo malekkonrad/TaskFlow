@@ -9,7 +9,7 @@ public class AppDbContext : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Project> Projects { get; set; }
-    public DbSet<Task> Tasks { get; set; }
+    public DbSet<UserTask> Tasks { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<TaskHistory> TaskHistories { get; set; }
     public DbSet<ProjectMember> ProjectMembers { get; set; }
@@ -51,7 +51,7 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.SetNull); // Ustaw na null zamiast usuwać historię
 
         // Task - AssignedUser ustaw na null przy usunięciu usera
-        modelBuilder.Entity<Task>()
+        modelBuilder.Entity<UserTask>()
             .HasOne(t => t.Assignee)
             .WithMany()
             .HasForeignKey(t => t.AssigneeId)
@@ -76,7 +76,7 @@ public class AppDbContext : DbContext
             .IsUnique();
 
         // Konfiguracja dla Task-Project relacji
-        modelBuilder.Entity<Task>()
+        modelBuilder.Entity<UserTask>()
             .HasOne(t => t.Project)
             .WithMany(p => p.Tasks)
             .HasForeignKey(t => t.ProjectId)

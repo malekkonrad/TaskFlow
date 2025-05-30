@@ -21,5 +21,5 @@ public class Project
     // Relacja z członkami projektu
     public ICollection<ProjectMember> Members { get; set; } = new List<ProjectMember>();
 
-    public ICollection<Task> Tasks { get; set; } = new List<Task>();
+    public ICollection<UserTask> Tasks { get; set; } = new List<UserTask>();
 }

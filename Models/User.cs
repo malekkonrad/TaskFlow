@@ -23,7 +23,7 @@ public class User
     
 
     // Taski 
-    public ICollection<Task> AssignedTasks { get; set; } = new List<Task>();
+    public ICollection<UserTask> AssignedTasks { get; set; } = new List<UserTask>();
 
     // Komentarze
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();

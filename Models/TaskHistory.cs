@@ -9,7 +9,7 @@ public class TaskHistory
         
     [Required]
     public int TaskId { get; set; }
-    public Task Task { get; set; }
+    public UserTask Task { get; set; }
     
     [Required]
     public int UserId { get; set; }

@@ -12,7 +12,7 @@ public class Comment
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public int TaskItemId { get; set; }
-    public Task Task { get; set; }
+    public UserTask Task { get; set; }
 
     public int AuthorId { get; set; }
     public User Author { get; set; }

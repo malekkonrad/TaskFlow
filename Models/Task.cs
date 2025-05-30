@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TaskFlow.Models;
 
-public class Task
+public class UserTask
 {
     [Key]
     public int Id { get; set; }
