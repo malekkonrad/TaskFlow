@@ -86,6 +86,10 @@ public class AppDbContext : DbContext
         var admin = CreateAdmin("admin");
         modelBuilder.Entity<User>().HasData(admin);
 
+        // Dodanie domyślnych statusów
+        var statuses = CreateDefaultStatuses();
+        modelBuilder.Entity<Status>().HasData(statuses);
+
     }
 
 
@@ -104,5 +108,16 @@ public class AppDbContext : DbContext
         };
 
         return admin;
+    }
+
+
+    private List<Status> CreateDefaultStatuses()
+    {
+        return new List<Status>
+        {
+            new Status { Id = 1, Name = "To Do" },
+            new Status { Id = 2, Name = "In Progress" },
+            new Status { Id = 3, Name = "Done" }
+        };
     }
 }

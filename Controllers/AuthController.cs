@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TaskFlow.Models;
 
+using TaskFlow.Services;
 
 namespace TaskFlow.Controllers;
 
@@ -32,7 +33,7 @@ public class AuthController : Controller
     {
         var user = _context.Users.FirstOrDefault(u => u.UserName == username);
         var id = _context.Users.FirstOrDefault(u => u.UserName == username)?.Id;
-        if (user != null && VerifyPassword(password, user.Password))
+        if (user != null && new PasswordService().VerifyPassword(password, user.Password))
         {
             HttpContext.Session.SetString("Id", id.ToString());
             HttpContext.Session.SetString("Username", user.UserName);
@@ -51,20 +52,6 @@ public class AuthController : Controller
     {
         HttpContext.Session.Clear();
         return RedirectToAction("Login");
-    }
-
-
-    private bool VerifyPassword(string inputPassword, string storedHash)
-    {
-        // W tym przykładzie zakładamy, że nie trzymamy soli w bazie, więc nie da się tak łatwo tego porównać.
-        // W prawdziwej aplikacji przechowuj sól razem z hashem!
-        return HashPassword(inputPassword) == storedHash;
-    }
-
-    private string HashPassword(string password)
-    {
-        using var md5 = System.Security.Cryptography.MD5.Create();
-        return Convert.ToHexString(md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password)));
     }
 
 }

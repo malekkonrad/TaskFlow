@@ -4,39 +4,106 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1>Project Details</h1>
 
 <div>
-    <h4>Project</h4>
+    <h4>@Model.Name</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Name)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Name)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Description)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Description)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.IsPublic)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.IsPublic)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Owner)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Owner.UserName)
         </dd>
     </dl>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<hr />
+
+<div class="mt-4">
+    <h4>Tasks in this Project</h4>
+    <a asp-controller="UserTask" asp-action="Create" asp-route-projectId="@Model.Id" class="btn btn-success mb-3">Create New Task</a>
+    
+    @if (Model.Tasks != null && Model.Tasks.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Assignee</th>
+                        <th>Created</th>
+                        <th>Deadline</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var task in Model.Tasks.OrderByDescending(t => t.CreatedAt))
+                    {
+                        <tr>
+                            <td>@task.Title</td>
+                            <td>@(task.Description?.Length > 50 ? task.Description.Substring(0, 50) + "..." : task.Description)</td>
+                            <td>
+                                <span class="badge badge-@(task.Status?.Name == "Done" ? "success" : task.Status?.Name == "In Progress" ? "warning" : "secondary")">
+                                    @task.Status?.Name
+                                </span>
+                            </td>
+                            <td>@(task.Assignee?.UserName ?? "Unassigned")</td>
+                            <td>@task.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @if (task.Deadline.HasValue)
+                                {
+                                    <span class="@(task.Deadline < DateTime.Now ? "text-danger" : "")">
+                                        @task.Deadline.Value.ToString("dd/MM/yyyy")
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No deadline</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="UserTask" asp-action="Details" asp-route-id="@task.Id" class="btn btn-sm btn-info">Details</a>
+                                <a asp-controller="UserTask" asp-action="Edit" asp-route-id="@task.Id" class="btn btn-sm btn-warning">Edit</a>
+                                <a asp-controller="UserTask" asp-action="Delete" asp-route-id="@task.Id" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <p>No tasks found in this project.</p>
+            <a asp-controller="UserTask" asp-action="Create" asp-route-projectId="@Model.Id" class="btn btn-primary">Create the first task</a>
+        </div>
+    }
+</div>
+
+<div class="mt-4">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit Project</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>

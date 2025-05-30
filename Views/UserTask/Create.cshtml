@@ -34,15 +34,25 @@
             </div>
             <div class="form-group">
                 <label asp-for="ProjectId" class="control-label"></label>
-                <select asp-for="ProjectId" class ="form-control" asp-items="ViewBag.ProjectId"></select>
+                @if (ViewData["SelectedProjectId"] != null)
+                {
+                    @* Jeśli projekt jest predefiniowany, pokaż jako readonly *@
+                    <select asp-for="ProjectId" class="form-control" asp-items="ViewBag.ProjectId" disabled></select>
+                    <input type="hidden" asp-for="ProjectId" value="@ViewData["SelectedProjectId"]" />
+                }
+                else
+                {
+                    @* Jeśli nie ma predefiniowanego projektu, pozwól wybrać *@
+                    <select asp-for="ProjectId" class="form-control" asp-items="ViewBag.ProjectId"></select>
+                }
             </div>
             <div class="form-group">
                 <label asp-for="AssigneeId" class="control-label"></label>
-                <select asp-for="AssigneeId" class ="form-control" asp-items="ViewBag.AssigneeId"></select>
+                <select asp-for="AssigneeId" class="form-control" asp-items="ViewBag.AssigneeId"></select>
             </div>
             <div class="form-group">
                 <label asp-for="StatusId" class="control-label"></label>
-                <select asp-for="StatusId" class ="form-control" asp-items="ViewBag.StatusId"></select>
+                <select asp-for="StatusId" class="form-control" asp-items="ViewBag.StatusId"></select>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
@@ -52,7 +62,14 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    @if (ViewData["SelectedProjectId"] != null)
+    {
+        <a asp-controller="Project" asp-action="Details" asp-route-id="@ViewData["SelectedProjectId"]">Back to Project</a>
+    }
+    else
+    {
+        <a asp-action="Index">Back to List</a>
+    }
 </div>
 
 @section Scripts {

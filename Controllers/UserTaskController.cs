@@ -48,13 +48,24 @@ public class UserTaskController : Controller
     }
 
     // GET: UserTask/Create
-    public IActionResult Create()
+    public IActionResult Create(int? projectId)
     {
         ViewData["AssigneeId"] = new SelectList(_context.Users, "Id", "UserName");
-        ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Name");
+        if (projectId.HasValue)
+        {
+            // Jeśli mamy projectId, ustaw go jako wybrany i pokaż tylko ten projekt
+            ViewData["ProjectId"] = new SelectList(_context.Projects.Where(p => p.Id == projectId), "Id", "Name", projectId);
+            ViewData["SelectedProjectId"] = projectId;
+        }
+        else
+        {
+            // Jeśli nie ma projectId, pokaż wszystkie projekty
+            ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Name");
+        }
+        
         ViewData["StatusId"] = new SelectList(_context.Statuses, "Id", "Name");
         return View();
-    }
+        }
 
     // POST: UserTask/Create
     // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -67,7 +78,8 @@ public class UserTaskController : Controller
         {
             _context.Add(userTask);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            // Po utworzeniu taska, przekieruj z powrotem do szczegółów projektu
+            return RedirectToAction("Details", "Project", new { id = userTask.ProjectId });
         }
         ViewData["AssigneeId"] = new SelectList(_context.Users, "Id", "UserName", userTask.AssigneeId);
         ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Name", userTask.ProjectId);
@@ -124,7 +136,7 @@ public class UserTaskController : Controller
                     throw;
                 }
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Details", "Project", new { id = userTask.ProjectId });
         }
         ViewData["AssigneeId"] = new SelectList(_context.Users, "Id", "UserName", userTask.AssigneeId);
         ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Name", userTask.ProjectId);

@@ -38,6 +38,10 @@ public class ProjectController : Controller
 
         var project = await _context.Projects
             .Include(p => p.Owner)
+            .Include(p => p.Tasks)
+                .ThenInclude(t => t.Assignee)
+            .Include(p => p.Tasks)
+            .ThenInclude(t => t.Status)    
             .FirstOrDefaultAsync(m => m.Id == id);
         if (project == null)
         {
