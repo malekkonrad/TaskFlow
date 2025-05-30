@@ -74,10 +74,12 @@ public class UserTaskController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Title,Description,CreatedAt,Deadline,ProjectId,AssigneeId,StatusId")] UserTask userTask)
+    public async Task<IActionResult> Create([Bind("Id,Title,Description,Deadline,ProjectId,AssigneeId,StatusId")] UserTask userTask)
     {
         if (ModelState.IsValid)
         {
+            userTask.CreatedAt = DateTime.Now; // Ustawienie daty utworzenia na teraz
+
             _context.Add(userTask);
             await _context.SaveChangesAsync();
             // Po utworzeniu taska, przekieruj z powrotem do szczegółów projektu
