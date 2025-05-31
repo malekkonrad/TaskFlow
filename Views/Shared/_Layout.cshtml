@@ -20,31 +20,29 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Strona Główna</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        
 
                         @if (Context.Session.GetString("Username") != null) {
                             @if (Context.Session.GetString("Role") == "ADMIN")
                             {
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index"> Users </a>
+                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index"> Użytkownicy </a>
                     
                             }
 
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Project" asp-action="Index"> Projects </a>
+                                <a class="nav-link text-dark" asp-controller="Project" asp-action="Index"> Projekty </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="UserTask" asp-action="Index"> Tasks </a>
+                                <a class="nav-link text-dark" asp-controller="UserTask" asp-action="Index"> Zadania </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Auth" asp-action="Logout">Logout</a>
+                                <a class="nav-link text-dark" asp-controller="Auth" asp-action="Logout">Wyloguj</a>
                             </li>
                         } else {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Auth" asp-action="Login">Login</a>
+                                <a class="nav-link text-dark" asp-controller="Auth" asp-action="Login">Zaloguj się</a>
                             </li>
                         }
 

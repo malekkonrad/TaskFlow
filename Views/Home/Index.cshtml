@@ -1,8 +1,218 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "TaskFlow - Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (Context.Session.GetString("Username") != null)
+{
+    <div class="container-fluid">
+        <!-- Nagłówek powitalny -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="jumbotron bg-primary text-white p-4 rounded">
+                    <h1 class="display-4">Witaj, @Context.Session.GetString("Username")!</h1>
+                    <p class="lead">Zarządzaj swoimi projektami i zadaniami w TaskFlow</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Szybkie akcje -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3>Szybkie akcje</h3>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Projekty -->
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card h-100 border-primary">
+                    <div class="card-body text-center">
+                        <i class="fas fa-project-diagram fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Projekty</h5>
+                        <p class="card-text">Przeglądaj i zarządzaj swoimi projektami</p>
+                        <a asp-controller="Project" asp-action="Index" class="btn btn-primary">Zobacz projekty</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zadania -->
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card h-100 border-success">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tasks fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Moje zadania</h5>
+                        <p class="card-text">Sprawdź przypisane do Ciebie zadania</p>
+                        <a asp-controller="UserTask" asp-action="Index" class="btn btn-success">Zobacz zadania</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nowy projekt -->
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card h-100 border-warning">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plus-circle fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title">Nowy projekt</h5>
+                        <p class="card-text">Utwórz nowy projekt</p>
+                        <a asp-controller="Project" asp-action="Create" class="btn btn-warning">Stwórz projekt</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nowe zadanie -->
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card h-100 border-info">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plus-square fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">Nowe zadanie</h5>
+                        <p class="card-text">Dodaj nowe zadanie</p>
+                        <a asp-controller="UserTask" asp-action="Create" class="btn btn-info">Dodaj zadanie</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel administracyjny (tylko dla adminów) -->
+        @if (Context.Session.GetString("Role") == "ADMIN")
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h3>Panel administracyjny</h3>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100 border-danger">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users-cog fa-3x text-danger mb-3"></i>
+                            <h5 class="card-title">Zarządzanie użytkownikami</h5>
+                            <p class="card-text">Dodawaj i usuwaj użytkowników systemu</p>
+                            <a asp-controller="Admin" asp-action="Index" class="btn btn-danger">Panel admina</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100 border-secondary">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-plus fa-3x text-secondary mb-3"></i>
+                            <h5 class="card-title">Dodaj użytkownika</h5>
+                            <p class="card-text">Stwórz nowe konto użytkownika</p>
+                            <a asp-controller="Admin" asp-action="AddUser" class="btn btn-secondary">Dodaj użytkownika</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100 border-dark">
+                        <div class="card-body text-center">
+                            <i class="fas fa-list fa-3x text-dark mb-3"></i>
+                            <h5 class="card-title">Statusy zadań</h5>
+                            <p class="card-text">Zarządzaj statusami zadań</p>
+                            <a asp-controller="Status" asp-action="Index" class="btn btn-dark">Zarządzaj statusami</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Statystyki użytkownika -->
+        <div class="row">
+            <div class="col-12">
+                <h3>Przydatne linki</h3>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-info-circle"></i> Informacje</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><strong>Rola:</strong> @Context.Session.GetString("Role")</li>
+                            <li><strong>ID użytkownika:</strong> @Context.Session.GetString("Id")</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-question-circle"></i> Potrzebujesz pomocy?</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Sprawdź naszą dokumentację lub skontaktuj się z administratorem.</p>
+                        <a asp-controller="Home" asp-action="Privacy" class="btn btn-outline-primary btn-sm">Polityka prywatności</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Widok dla niezalogowanych użytkowników -->
+    <div class="text-center">
+        <h1 class="display-4">Witaj w TaskFlow</h1>
+        <p class="lead">System zarządzania projektami i zadaniami</p>
+        <div class="mt-4">
+            <a asp-controller="Auth" asp-action="Login" class="btn btn-primary btn-lg me-3">Zaloguj się</a>
+        </div>
+        <div class="mt-5">
+            <h3>Funkcjonalności TaskFlow:</h3>
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-project-diagram fa-3x text-primary mb-3"></i>
+                            <h5>Zarządzanie projektami</h5>
+                            <p>Twórz i organizuj swoje projekty</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tasks fa-3x text-success mb-3"></i>
+                            <h5>Śledzenie zadań</h5>
+                            <p>Monitoruj postęp swoich zadań</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users fa-3x text-info mb-3"></i>
+                            <h5>Współpraca zespołowa</h5>
+                            <p>Pracuj razem z zespołem</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+<style>
+    .jumbotron {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .card {
+        transition: transform 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .fa-3x {
+        font-size: 3em;
+    }
+</style>
