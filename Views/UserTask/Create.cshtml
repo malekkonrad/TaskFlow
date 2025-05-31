@@ -4,74 +4,90 @@
     ViewData["Title"] = "Create";
 }
 
-<h1>Create</h1>
+<h1>Create Task</h1>
 
-<h4>UserTask</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
+@* FORMULARZ 1: Tylko do wyboru projektu *@
+@if (ViewData["SelectedProjectId"] == null)
+{
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Step 1: Select Project</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SelectProject" method="post">
+                        <div class="form-group">
+                            <label class="control-label">Choose Project:</label>
+                            <select name="projectId" class="form-control" asp-items="ViewBag.ProjectId" required>
+                                <option value="">-- Select Project --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Continue</button>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            @* <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div> *@
-            <div class="form-group">
-                <label asp-for="Deadline" class="control-label"></label>
-                <input asp-for="Deadline" class="form-control" />
-                <span asp-validation-for="Deadline" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ProjectId" class="control-label"></label>
-                @if (ViewData["SelectedProjectId"] != null)
-                {
-                    @* Jeśli projekt jest predefiniowany, pokaż jako readonly *@
-                    <select asp-for="ProjectId" class="form-control" asp-items="ViewBag.ProjectId" disabled></select>
-                    <input type="hidden" asp-for="ProjectId" value="@ViewData["SelectedProjectId"]" />
-                }
-                else
-                {
-                    @* Jeśli nie ma predefiniowanego projektu, pozwól wybrać *@
-                    <select asp-for="ProjectId" class="form-control" asp-items="ViewBag.ProjectId"></select>
-                }
-            </div>
-            <div class="form-group">
-                <label asp-for="AssigneeId" class="control-label"></label>
-                <select asp-for="AssigneeId" class="form-control" asp-items="ViewBag.AssigneeId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="StatusId" class="control-label"></label>
-                <select asp-for="StatusId" class="form-control" asp-items="ViewBag.StatusId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
+}
 
-<div>
-    @if (ViewData["SelectedProjectId"] != null)
-    {
-        <a asp-controller="Project" asp-action="Details" asp-route-id="@ViewData["SelectedProjectId"]">Back to Project</a>
-    }
-    else
-    {
-        <a asp-action="Index">Back to List</a>
-    }
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+@* FORMULARZ 2: Tworzenie zadania (pokazuje się tylko po wyborze projektu) *@
+@if (ViewData["SelectedProjectId"] != null)
+{
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Step 2: Create Task</h5>
+                    <small class="text-muted">
+                        Selected Project: 
+                        @Html.DropDownList("ProjectId", (SelectList)ViewBag.ProjectId, new { @class = "form-control d-inline", @style = "width: auto;", @disabled = "disabled" })
+                        <a asp-action="Create" class="btn btn-sm btn-secondary ml-2">Change Project</a>
+                    </small>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        @* Ukryte pole z wybranym projektem *@
+                        <input type="hidden" asp-for="ProjectId" value="@ViewData["SelectedProjectId"]" />
+                        
+                        <div class="form-group">
+                            <label asp-for="Title" class="control-label"></label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label asp-for="Description" class="control-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label asp-for="Deadline" class="control-label"></label>
+                            <input asp-for="Deadline" class="form-control" type="datetime-local" />
+                            <span asp-validation-for="Deadline" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label asp-for="AssigneeId" class="control-label">Assign To:</label>
+                            <select asp-for="AssigneeId" class="form-control" asp-items="ViewBag.AssigneeId"></select>
+                            <small class="form-text text-muted">Only project members can be assigned to this task.</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label asp-for="StatusId" class="control-label"></label>
+                            <select asp-for="StatusId" class="form-control" asp-items="ViewBag.StatusId"></select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-success">Create Task</button>
+                            <a asp-controller="Project" asp-action="Details" asp-route-id="@ViewData["SelectedProjectId"]" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 }

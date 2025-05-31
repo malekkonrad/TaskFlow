@@ -16,17 +16,16 @@ public class TaskHistory
     public User? User { get; set; }
     
     [Required]
-    public string? Action { get; set; } // Created, Updated, Completed, Assigned, CommentAdded, StatusChanged, etc.
-    // można też użyć enum, ale dla prostoty zostawiamy string    
+    public string? Action { get; set; } 
+       
     
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
-    public string? FieldName { get; set; } // Title, Description, Status, Priority, AssignedTo, etc.
+    public string? FieldName { get; set; } 
     
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
-    // Dodatkowe pola dla statystyk
     public int ProjectId { get; set; }
     public Project? Project { get; set; }
     
