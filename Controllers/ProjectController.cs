@@ -23,7 +23,10 @@ public class ProjectController : Controller
     public async Task<IActionResult> Index()
     {
         var currentUserId = GetCurrentUserId();
-        var appDbContext = _context.Projects.Include(p => p.Owner).Where(p => p.IsPublic || p.OwnerId == currentUserId)
+        var appDbContext = _context.Projects
+            .Include(p => p.Owner)
+            .Include(p => p.Members)
+            .Where(p => p.OwnerId == currentUserId || p.Members.Any(m => m.UserId == currentUserId))
             .OrderByDescending(p => p.Id);
         return View(await appDbContext.ToListAsync());
     }
@@ -140,12 +143,22 @@ public class ProjectController : Controller
             return NotFound();
         }
 
+        
+
         var project = await _context.Projects
             .Include(p => p.Owner)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (project == null)
         {
             return NotFound();
+        }
+
+        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
+        var currentUserId = GetCurrentUserId();
+        if (project.OwnerId != currentUserId)
+        {
+            TempData["ErrorMessage"] = "Nie masz uprawnień do usunięcia tego projektu.";
+            return RedirectToAction(nameof(Index));
         }
 
         return View(project);
@@ -161,14 +174,184 @@ public class ProjectController : Controller
             return Problem("Entity set 'AppDbContext.Projects'  is null.");
         }
         var project = await _context.Projects.FindAsync(id);
+
+        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
+        var currentUserId = GetCurrentUserId();
+        if (project != null && project.OwnerId != currentUserId)
+        {
+            TempData["ErrorMessage"] = "Nie masz uprawnień do usunięcia tego projektu.";
+            return RedirectToAction(nameof(Index));
+        }
         if (project != null)
         {
             _context.Projects.Remove(project);
         }
 
+        
+
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
+
+
+    // project members
+    // GET: Project/Members/5
+    public async Task<IActionResult> Members(int? id)
+    {
+        if (id == null || _context.Projects == null)
+        {
+            return NotFound();
+        }
+
+        var project = await _context.Projects
+            .Include(p => p.Owner)
+            .Include(p => p.Members)
+                .ThenInclude(pm => pm.User)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (project == null)
+        {
+            return NotFound();
+        }
+
+        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
+        var currentUserId = GetCurrentUserId();
+        if (project.OwnerId != currentUserId)
+        {
+            TempData["ErrorMessage"] = "Nie masz uprawnień do usunięcia tego projektu.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(project);
+    }
+
+
+    // GET: Project/AddMember/5
+    public async Task<IActionResult> AddMember(int? id)
+    {
+        if (id == null || _context.Projects == null)
+        {
+            return NotFound();
+        }
+
+        var project = await _context.Projects.FindAsync(id);
+        if (project == null)
+        {
+            return NotFound();
+        }
+        
+
+        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
+        var currentUserId = GetCurrentUserId();
+        if (project.OwnerId != currentUserId)
+        {
+            TempData["ErrorMessage"] = "Nie masz uprawnień do usunięcia tego projektu.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (!project.IsPublic)
+        {
+            TempData["ErrorMessage"] = "Nie możesz dodawać członków do prywatnego projektu.";
+            return RedirectToAction(nameof(Members), new { id = project.Id });
+        }
+
+        // Pobierz użytkowników którzy nie są jeszcze członkami projektu
+        var existingMemberIds = await _context.ProjectMembers
+            .Where(pm => pm.ProjectId == id)
+            .Select(pm => pm.UserId)
+            .ToListAsync();
+
+        var availableUsers = await _context.Users
+            .Where(u => u.Id != project.OwnerId && !existingMemberIds.Contains(u.Id))
+            .ToListAsync();
+
+        ViewData["UserId"] = new SelectList(availableUsers, "Id", "UserName");
+        ViewBag.ProjectId = id;
+        ViewBag.ProjectName = project.Name;
+
+        return View();
+    }
+
+
+    // POST: Project/AddMember
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddMember([Bind("ProjectId,UserId")] ProjectMember projectMember)
+    {
+        if (ModelState.IsValid)
+        {
+            // Sprawdź czy projekt istnieje i czy aktualny użytkownik jest właścicielem
+            var project = await _context.Projects.FindAsync(projectMember.ProjectId);
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            var currentUserId = GetCurrentUserId();
+            if (project.OwnerId != currentUserId)
+            {
+                TempData["ErrorMessage"] = "Nie masz uprawnień do dodawania członków do tego projektu.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Sprawdź czy użytkownik nie jest już członkiem projektu
+            var existingMember = await _context.ProjectMembers
+                .FirstOrDefaultAsync(pm => pm.ProjectId == projectMember.ProjectId && pm.UserId == projectMember.UserId);
+
+            if (existingMember != null)
+            {
+                ModelState.AddModelError("", "Ten użytkownik jest już członkiem projektu.");
+                return RedirectToAction(nameof(AddMember), new { id = projectMember.ProjectId });
+            }
+
+            projectMember.JoinedAt = DateTime.UtcNow;
+            _context.Add(projectMember);
+            await _context.SaveChangesAsync();
+            
+            return RedirectToAction(nameof(Members), new { id = projectMember.ProjectId });
+        }
+
+        return RedirectToAction(nameof(AddMember), new { id = projectMember.ProjectId });
+    }
+
+
+
+    // POST: Project/RemoveMember
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveMember(int projectId, int userId)
+    {
+        var project = await _context.Projects.FindAsync(projectId);
+        if (project == null)
+        {
+            return NotFound();
+        }
+
+        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
+        var currentUserId = GetCurrentUserId();
+        if (project.OwnerId != currentUserId)
+        {
+            TempData["ErrorMessage"] = "Nie masz uprawnień do usunięcia członka z tego projektu.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var projectMember = await _context.ProjectMembers
+            .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.UserId == userId);
+
+        if (projectMember != null)
+        {
+            _context.ProjectMembers.Remove(projectMember);
+            await _context.SaveChangesAsync();
+        }
+
+        return RedirectToAction(nameof(Members), new { id = projectId });
+    }
+
+
+
+
+
+
 
     private bool ProjectExists(int id)
     {

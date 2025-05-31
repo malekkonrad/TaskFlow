@@ -6,6 +6,21 @@
 
 <h1>Project Details</h1>
 
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+
 <div>
     <h4>@Model.Name</h4>
     <hr />
@@ -107,3 +122,11 @@
     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit Project</a>
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
+
+
+@if (Model.OwnerId == Int32.Parse(ViewContext.HttpContext.Session.GetString("Id")))
+{
+    <a asp-action="Members" asp-route-id="@Model.Id" class="btn btn-info">
+        <i class="fas fa-users"></i> Zarządzaj członkami
+    </a>
+}

@@ -1,0 +1,82 @@
+@model TaskFlow.Models.Project
+
+@{
+    ViewData["Title"] = "Członkowie projektu";
+}
+
+<h1>Członkowie projektu: @Model.Name</h1>
+
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+
+
+<div class="mb-3">
+    <a asp-action="AddMember" asp-route-id="@Model.Id" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Dodaj członka
+    </a>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+        Powrót do szczegółów
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5>Właściciel projektu</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>@Model.Owner.UserName</strong> (Właściciel)</p>
+    </div>
+</div>
+
+@if (Model.Members.Any())
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>Członkowie</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nazwa użytkownika</th>
+                            <th>Data dołączenia</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var member in Model.Members)
+                        {
+                            <tr>
+                                <td>@member.User.UserName</td>
+                                <td>@member.JoinedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>
+                                    <form asp-action="RemoveMember" method="post" style="display: inline;">
+                                        <input type="hidden" name="projectId" value="@Model.Id" />
+                                        <input type="hidden" name="userId" value="@member.UserId" />
+                                        <button type="submit" class="btn btn-danger btn-sm" 
+                                                onclick="return confirm('Czy na pewno chcesz usunąć tego członka?')">
+                                            <i class="fas fa-trash"></i> Usuń
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-info mt-3">
+        Ten projekt nie ma jeszcze żadnych członków.
+    </div>
+}
