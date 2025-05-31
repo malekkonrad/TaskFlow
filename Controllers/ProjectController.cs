@@ -95,7 +95,20 @@ public class ProjectController : Controller
         {
             return NotFound();
         }
-        ViewData["OwnerId"] = new SelectList(_context.Users, "Id", "UserName", project.OwnerId);
+
+        var memberIds = await _context.ProjectMembers
+        .Where(pm => pm.ProjectId == id)
+        .Select(pm => pm.UserId)
+        .ToListAsync();
+
+        memberIds.Add(project.OwnerId); // Include owner as a member
+
+        // Get the actual User objects for the SelectList
+        var members = await _context.Users
+            .Where(u => memberIds.Contains(u.Id))
+            .ToListAsync();
+
+        ViewData["OwnerId"] = new SelectList(members, "Id", "UserName", project.OwnerId);
         return View(project);
     }
 
