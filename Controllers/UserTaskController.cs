@@ -52,7 +52,35 @@ public class UserTaskController : Controller
     // GET: UserTask/Create
     public IActionResult Create(int? projectId)
     {
-        ViewData["AssigneeId"] = new SelectList(_context.Users, "Id", "UserName");
+
+        var currentUserId = GetCurrentUserId();
+
+        var users = new List<User>();
+        if (projectId.HasValue)
+        {
+            // Get users that are members of the specified project
+            var projectMembers = _context.ProjectMembers
+                .Where(pm => pm.ProjectId == projectId)
+                .Select(pm => pm.User)
+                .ToList();
+            users.AddRange(projectMembers);
+
+            users.AddRange(_context.Users
+                .Where(u => u.OwnedProjects.Any(p => p.Id == projectId.Value))
+                .ToList());
+        }
+        else
+        {
+            // If no project specified, use all users
+            users = _context.Users.ToList();
+        }
+
+        // Create item for "Unassigned" option
+        var unassignedItem = new SelectListItem { Value = "", Text = "-- Unassigned --" };
+        var selectItems = users.Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.Id == currentUserId ? "-- Me --" : u.UserName }).ToList();
+        selectItems.Insert(0, unassignedItem);  // Add unassigned at the beginning
+
+        ViewData["AssigneeId"] = new SelectList(selectItems, "Value", "Text");
         if (projectId.HasValue)
         {
             // Jeśli mamy projectId, ustaw go jako wybrany i pokaż tylko ten projekt
@@ -64,10 +92,10 @@ public class UserTaskController : Controller
             // Jeśli nie ma projectId, pokaż wszystkie projekty
             ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Name");
         }
-        
+
         ViewData["StatusId"] = new SelectList(_context.Statuses, "Id", "Name");
         return View();
-        }
+    }
 
     // POST: UserTask/Create
     // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -191,6 +219,16 @@ public class UserTaskController : Controller
     private bool UserTaskExists(int id)
     {
         return (_context.Tasks?.Any(e => e.Id == id)).GetValueOrDefault();
+    }
+    
+    private int GetCurrentUserId()
+    {
+        var userId = HttpContext.Session.GetString("Id");
+        if (string.IsNullOrEmpty(userId))
+        {
+            throw new UnauthorizedAccessException("User is not logged in.");
+        }
+        return int.Parse(userId);
     }
 }
 
