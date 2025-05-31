@@ -22,7 +22,7 @@ public class UserTaskController : Controller
     // GET: UserTask
     public async Task<IActionResult> Index()
     {
-        var appDbContext = _context.Tasks.Include(u => u.Assignee).Include(u => u.Project).Include(u => u.Status);
+        var appDbContext = _context.Tasks.Include(u => u.Assignee).Include(u => u.Project).Include(u => u.Status).Where(u=> u.AssigneeId == GetCurrentUserId());
         return View(await appDbContext.ToListAsync());
     }
 

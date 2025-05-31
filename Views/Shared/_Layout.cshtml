@@ -30,12 +30,14 @@
                             @if (Context.Session.GetString("Role") == "ADMIN")
                             {
                                 <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index"> Users </a>
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Adduser"> AddUser </a>
-            
+                    
                             }
 
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Project" asp-action="Index"> Projects </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="UserTask" asp-action="Index"> Tasks </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Auth" asp-action="Logout">Logout</a>

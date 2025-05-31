@@ -14,6 +14,6 @@ public class Comment
     public int TaskItemId { get; set; }
     public UserTask? Task { get; set; }
 
-    public int AuthorId { get; set; }
+    public int? AuthorId { get; set; }
     public User? Author { get; set; }
 }

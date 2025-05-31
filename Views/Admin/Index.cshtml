@@ -6,6 +6,104 @@
 
 <h2>Lista użytkowników</h2>
 
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="mb-3">
+    <a asp-action="AddUser" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Dodaj użytkownika
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Login</th>
+                        <th>Rola</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.Id</td>
+                        <td>@user.UserName</td>
+                        <td>
+                            <span class="badge badge-@(user.Role == "ADMIN" ? "danger" : "primary")">
+                                @user.Role
+                            </span>
+                        </td>
+                        <td>
+                            @{
+                                var currentUserId = ViewContext.HttpContext.Session.GetString("Id");
+                                var adminCount = Model.Count(u => u.Role == "ADMIN");
+                                var canDelete = user.Id.ToString() != currentUserId && 
+                                              !(user.Role == "ADMIN" && adminCount <= 1);
+                            }
+                            
+                            @if (canDelete)
+                            {
+                                <form asp-action="DeleteUser" method="post" style="display: inline;" 
+                                      onsubmit="return confirm('Czy na pewno chcesz usunąć użytkownika @user.UserName? Ta akcja jest nieodwracalna.')">
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i> Usuń
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                @if (user.Id.ToString() == currentUserId)
+                                {
+                                    <span class="text-muted small">To Ty</span>
+                                }
+                                else if (user.Role == "ADMIN" && adminCount <= 1)
+                                {
+                                    <span class="text-muted small">Jedyny admin</span>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <p>Brak użytkowników w systemie.</p>
+    </div>
+}
+
+
+@* @model IEnumerable<TaskFlow.Models.User>
+
+@{
+    ViewData["Title"] = "Lista użytkowników";
+}
+
+<h2>Lista użytkowników</h2>
+
 <table class="table">
     <thead>
         <tr>
@@ -24,4 +122,4 @@
         </tr>
     }
     </tbody>
-</table>
+</table> *@
