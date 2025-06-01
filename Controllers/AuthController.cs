@@ -38,6 +38,7 @@ public class AuthController : Controller
             HttpContext.Session.SetString("Id", id.ToString());
             HttpContext.Session.SetString("Username", user.UserName);
             HttpContext.Session.SetString("Role", user.Role);
+            Console.WriteLine($"User {user.UserName} logged in with role {user.ApiToken}");
             return RedirectToAction("Index", "Home");
         }
 

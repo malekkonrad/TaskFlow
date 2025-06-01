@@ -5,7 +5,7 @@ using TaskFlow.Models;
 namespace TaskFlow.Controllers.Api;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/projects")]
 public class ProjectApiController : ControllerBase
 {
 
@@ -42,6 +42,19 @@ public class ProjectApiController : ControllerBase
         return user != null;
     }
 
+    private async Task<User?> AuthenticateUser(HttpRequest request)
+    {
+        var username = request.Headers["username"].FirstOrDefault();
+        var token = request.Headers["token"].FirstOrDefault();
+        Console.WriteLine($"Authenticating user: {username} with token: {token}");
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(token))
+        {
+            return null;
+        }
+
+        return await _context.Users.FirstOrDefaultAsync(u => u.UserName == username && u.ApiToken == token);
+    }
+
     [HttpGet("{id}")] // GET: api/ProjectApi/{id}
     public async Task<ActionResult<ProjectDTO>> GetProject(int id)
     {
@@ -59,15 +72,20 @@ public class ProjectApiController : ControllerBase
         if (!IsAuthorized(Request)) return Unauthorized();
         if (_context.Projects == null) return NotFound(); 
 
-        var id_owner = int.Parse(HttpContext.Session.GetString("Id") ?? "2");
-        Console.WriteLine($"Creating project for owner ID: {id_owner}");
-        var owner = await _context.Users.FindAsync(id_owner);
-        Console.WriteLine($"Owner found: {owner?.UserName}");
+
+        var user = await AuthenticateUser(Request);
+        var id_owner = user?.Id ?? -1; // Default to 2 if user is null, for testing purposes
+        // var id_owner = int.Parse(HttpContext.Session.GetString("Id") ?? "2");
+        // Console.WriteLine($"Creating project for owner ID: {id_owner}");
+        // var owner = await _context.Users.FindAsync(id_owner);
+        // Console.WriteLine($"Owner found: {owner?.UserName}");
 
         var project = new Project
         {
+            
             Name = projectDTO.Name,
             OwnerId = id_owner,
+            Owner = user, // Set the owner of the project
             // Owner = owner, // Set the owner of the project
             Description = projectDTO.Description, // Add this line
             Members = new List<ProjectMember>(), // Initialize Members collection
@@ -100,8 +118,44 @@ public class ProjectApiController : ControllerBase
         return NoContent();
     }
 
+    // DELETE: api/Project/5
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteProject(int id)
+    {
+        // var user = await AuthenticateUser();
+        // if (user == null)
+        // {
+        //     return Unauthorized("Invalid username or API token");
+        // }
+        if (!IsAuthorized(Request)) return Unauthorized();
+        if (_context.Projects == null) return NotFound(); 
+
+        var user = await AuthenticateUser(Request);
+        if (user == null)
+        {
+            return Unauthorized("Invalid username or API token");
+        }
+        var project = await _context.Projects.FindAsync(id);
+        if (project == null)
+        {
+            return NotFound();
+        }
+
+        // Only owner can delete project
+        if (project.OwnerId != user.Id)
+        {
+            return Forbid("Only project owner can delete the project");
+        }
+
+        _context.Projects.Remove(project);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     private static ProjectDTO ItemToDTO(Project project) => new ProjectDTO
     {
+        Id = project.Id,
         Name = project.Name,
         Description = project.Description,
         IsPublic = project.IsPublic
