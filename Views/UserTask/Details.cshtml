@@ -1,110 +1,626 @@
 @model TaskFlow.Models.UserTask
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły zadania - TaskFlow";
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>UserTask</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Deadline)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Deadline)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Project)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Project.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Assignee)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Assignee.UserName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status.Name)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-controller="Project" asp-action="Details" asp-route-id="@Model?.ProjectId">Back to Project</a>
-</div>
-
-
-
-<hr />
-<div class="mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>Comments (@(Model.Comments?.Count ?? 0))</h4>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCommentModal">Add Comment</button>
-    </div>
+<style>
+    .page-container {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
     
-    @if (Model.Comments != null && Model.Comments.Any())
-    {
-        <div class="comments-container">
-            @foreach (var comment in Model.Comments.OrderBy(c => c.CreatedAt))
+    .content-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        padding: 30px;
+        text-align: center;
+        color: white;
+        position: relative;
+    }
+    
+    .page-header h1 {
+        margin: 0;
+        font-weight: 300;
+        font-size: 2.5rem;
+    }
+    
+    .page-header p {
+        margin: 10px 0 0 0;
+        opacity: 0.9;
+    }
+    
+    .task-status-header {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .content-body {
+        padding: 30px;
+    }
+    
+    .alert-custom {
+        border-radius: 8px;
+        border: none;
+        margin-bottom: 20px;
+        padding: 12px 15px;
+    }
+    
+    .alert-danger-custom {
+        background: #fee;
+        color: #c33;
+        border-left: 4px solid #c33;
+    }
+    
+    .alert-success-custom {
+        background: #efe;
+        color: #363;
+        border-left: 4px solid #363;
+    }
+    
+    .task-info-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 2px solid #e9ecef;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .info-item {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+    }
+    
+    .info-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .status-done {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-progress {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-todo {
+        background: #e9ecef;
+        color: #495057;
+    }
+    
+    .priority-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .priority-high {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .priority-medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .priority-low {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .task-description {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #17a2b8;
+        margin-top: 15px;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 30px 0 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .btn-custom {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        margin: 5px;
+    }
+    
+    .btn-success-custom {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+    
+    .btn-warning-custom {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        color: #212529;
+    }
+    
+    .btn-secondary-custom {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+    
+    .btn-info-custom {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+    }
+    
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .comments-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 30px;
+        border: 2px solid #e9ecef;
+    }
+    
+    .comment-item {
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+    
+    .comment-item:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .comment-author {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+    }
+    
+    .author-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .author-name {
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .comment-date {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin: 0;
+    }
+    
+    .comment-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-sm-custom {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: 1px solid;
+    }
+    
+    .btn-sm-outline-secondary {
+        color: #6c757d;
+        border-color: #6c757d;
+        background: transparent;
+    }
+    
+    .btn-sm-outline-danger {
+        color: #dc3545;
+        border-color: #dc3545;
+        background: transparent;
+    }
+    
+    .btn-sm-custom:hover {
+        transform: translateY(-1px);
+        text-decoration: none;
+        color: white;
+    }
+    
+    .btn-sm-outline-secondary:hover {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-sm-outline-danger:hover {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .comment-content {
+        line-height: 1.6;
+        color: #495057;
+        font-size: 0.95rem;
+    }
+    
+    .no-comments-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+        background: white;
+        border-radius: 8px;
+    }
+    
+    .no-comments-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #dee2e6;
+    }
+    
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .modal-title {
+        font-weight: 500;
+    }
+    
+    .btn-close {
+        filter: invert(1);
+    }
+    
+    .action-buttons {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 2px solid #e9ecef;
+        text-align: center;
+    }
+    
+    .deadline-warning {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    .deadline-safe {
+        color: #28a745;
+        font-weight: 600;
+    }
+    
+    @* @media (max-width: 768px) {
+        .page-container {
+            padding: 10px;
+        }
+        
+        .content-body {
+            padding: 20px;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .comment-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .comment-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+        
+        .task-status-header {
+            position: static;
+            display: inline-block;
+            margin-top: 10px;
+        }
+    } *@
+</style>
+
+<div class="page-container">
+    <div class="content-card">
+        <div class="page-header">
+            <div class="task-status-header">
+                <span class="status-badge @(Model.Status?.Name == "Done" ? "status-done" : Model.Status?.Name == "In Progress" ? "status-progress" : "status-todo")">
+                    <i class="fas fa-flag"></i>
+                    @(Model.Status?.Name ?? "To Do")
+                </span>
+            </div>
+            <div style="font-size: 3rem; margin-bottom: 10px;">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <h1>Szczegóły Zadania</h1>
+            <p>@Model.Title</p>
+        </div>
+        
+        <div class="content-body">
+            @if (TempData["ErrorMessage"] != null)
             {
-                <div class="comment-item border rounded mb-3 p-3">
-                    <div class="comment-header d-flex justify-content-between align-items-start mb-2">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-circle me-2">
-                                @comment.Author?.UserName?.Substring(0, 1).ToUpper()
-                            </div>
-                            <div>
-                                <strong>@comment.Author?.UserName</strong>
-                                <small class="text-muted ms-2">commented @comment.CreatedAt.ToString("MMM dd, yyyy 'at' HH:mm")</small>
-                            </div>
+                <div class="alert-custom alert-danger-custom">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+            
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert-custom alert-success-custom">
+                    <i class="fas fa-check-circle"></i>
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+            
+            <!-- Informacje o zadaniu -->
+            <div class="task-info-card">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-heading"></i> Tytuł zadania
                         </div>
-                        <div class="comment-actions">
-                            <a asp-controller="Comment" asp-action="Edit" asp-route-id="@comment.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
-                            <a asp-controller="Comment" asp-action="Delete" asp-route-id="@comment.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                        <div class="info-value">@Model.Title</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-folder"></i> Projekt
+                        </div>
+                        <div class="info-value">
+                            <a asp-controller="Project" asp-action="Details" asp-route-id="@Model.ProjectId" style="color: #667eea; text-decoration: none;">
+                                @Model.Project.Name
+                            </a>
                         </div>
                     </div>
-                    <div class="comment-body">
-                        <div class="comment-content">
-                            @Html.Raw(comment.Content?.Replace("\n", "<br />"))
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-user"></i> Przypisane do
+                        </div>
+                        <div class="info-value">
+                            @if (Model.Assignee != null)
+                            {
+                                <span><i class="fas fa-user-check"></i> @Model.Assignee.UserName</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted"><i class="fas fa-user-times"></i> Nieprzypisane</span>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-calendar-plus"></i> Data utworzenia
+                        </div>
+                        <div class="info-value">@Model.CreatedAt.ToString("dd MMMM yyyy, HH:mm")</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-calendar-times"></i> Termin wykonania
+                        </div>
+                        <div class="info-value">
+                            @if (Model.Deadline.HasValue)
+                            {
+                                <span class="@(Model.Deadline < DateTime.Now ? "deadline-warning" : "deadline-safe")">
+                                    <i class="fas fa-calendar-@(Model.Deadline < DateTime.Now ? "times" : "check")"></i>
+                                    @Model.Deadline.Value.ToString("dd MMMM yyyy, HH:mm")
+                                    @if (Model.Deadline < DateTime.Now)
+                                    {
+                                        <small>(Przekroczony)</small>
+                                    }
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    <i class="fas fa-calendar-minus"></i> Brak terminu
+                                </span>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-flag"></i> Status
+                        </div>
+                        <div class="info-value">
+                            <span class="status-badge @(Model.Status?.Name == "Done" ? "status-done" : Model.Status?.Name == "In Progress" ? "status-progress" : "status-todo")">
+                                <i class="fas fa-@(Model.Status?.Name == "Done" ? "check-circle" : Model.Status?.Name == "In Progress" ? "clock" : "circle")"></i>
+                                @(Model.Status?.Name ?? "To Do")
+                            </span>
                         </div>
                     </div>
                 </div>
-            }
+                
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="task-description">
+                        <div class="info-label">
+                            <i class="fas fa-align-left"></i> Opis zadania
+                        </div>
+                        <div class="info-value">@Html.Raw(Model.Description.Replace("\n", "<br />"))</div>
+                    </div>
+                }
+            </div>
+            
+            <!-- Sekcja komentarzy -->
+            <div class="comments-section">
+                <div class="section-header">
+                    <h4 class="section-title">
+                        <i class="fas fa-comments"></i>
+                        Komentarze (@(Model.Comments?.Count ?? 0))
+                    </h4>
+                    <button class="btn-custom btn-success-custom" data-bs-toggle="modal" data-bs-target="#addCommentModal">
+                        <i class="fas fa-plus"></i> Dodaj komentarz
+                    </button>
+                </div>
+                
+                @if (Model.Comments != null && Model.Comments.Any())
+                {
+                    <div class="comments-container">
+                        @foreach (var comment in Model.Comments.OrderBy(c => c.CreatedAt))
+                        {
+                            <div class="comment-item">
+                                <div class="comment-header">
+                                    <div class="comment-author">
+                                        <div class="avatar-circle">
+                                            @(comment.Author?.UserName?.Substring(0, 1).ToUpper() ?? "?")
+                                        </div>
+                                        <div class="author-info">
+                                            <div class="author-name">@(comment.Author?.UserName ?? "Nieznany użytkownik")</div>
+                                            <div class="comment-date">@comment.CreatedAt.ToString("dd MMMM yyyy 'o' HH:mm")</div>
+                                        </div>
+                                    </div>
+                                    <div class="comment-actions">
+                                        <a asp-controller="Comment" asp-action="Edit" asp-route-id="@comment.Id" class="btn-sm-custom btn-sm-outline-secondary">
+                                            <i class="fas fa-edit"></i> Edytuj
+                                        </a>
+                                        <a asp-controller="Comment" asp-action="Delete" asp-route-id="@comment.Id" class="btn-sm-custom btn-sm-outline-danger">
+                                            <i class="fas fa-trash"></i> Usuń
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="comment-content">
+                                    @Html.Raw(comment.Content?.Replace("\n", "<br />"))
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="no-comments-state">
+                        <i class="fas fa-comment-dots"></i>
+                        <h5>Brak komentarzy</h5>
+                        <p>To zadanie nie ma jeszcze żadnych komentarzy. Dodaj pierwszy komentarz.</p>
+                        <button class="btn-custom btn-success-custom" data-bs-toggle="modal" data-bs-target="#addCommentModal">
+                            <i class="fas fa-plus"></i> Dodaj pierwszy komentarz
+                        </button>
+                    </div>
+                }
+            </div>
+            
+            <!-- Przyciski akcji -->
+            <div class="action-buttons">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-custom btn-warning-custom">
+                    <i class="fas fa-edit"></i> Edytuj zadanie
+                </a>
+                <a asp-controller="Project" asp-action="Details" asp-route-id="@Model.ProjectId" class="btn-custom btn-info-custom">
+                    <i class="fas fa-arrow-left"></i> Powrót do projektu
+                </a>
+                <a asp-action="Index" class="btn-custom btn-secondary-custom">
+                    <i class="fas fa-list"></i> Lista zadań
+                </a>
+            </div>
         </div>
-    }
-    else
-    {
-        <div class="alert alert-light border text-center py-4">
-            <p class="mb-2 text-muted">No comments yet.</p>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCommentModal">Be the first to comment</button>
-        </div>
-    }
+    </div>
 </div>
 
 <!-- Modal do dodawania komentarza -->
@@ -112,7 +628,9 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addCommentModalLabel">Add Comment</h5>
+                <h5 class="modal-title" id="addCommentModalLabel">
+                    <i class="fas fa-comment"></i> Dodaj komentarz
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-controller="Comment" asp-action="Create" method="post">
@@ -120,77 +638,23 @@
                     <input type="hidden" name="TaskItemId" value="@Model.Id" />
                     @Html.AntiForgeryToken()
                     <div class="form-group">
-                        <label for="Content" class="form-label">Comment</label>
-                        <textarea name="Content" id="Content" class="form-control" rows="4" placeholder="Leave a comment..." required></textarea>
+                        <label for="Content" class="form-label">
+                            <i class="fas fa-pen"></i> Treść komentarza
+                        </label>
+                        <textarea name="Content" id="Content" class="form-control" rows="4" 
+                                  placeholder="Napisz swój komentarz..." required 
+                                  style="border-radius: 8px; border: 2px solid #e9ecef;"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-comment"></i> Add Comment
+                <div class="modal-footer" style="border-top: 1px solid #e9ecef;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Anuluj
+                    </button>
+                    <button type="submit" class="btn-custom btn-success-custom">
+                        <i class="fas fa-comment"></i> Dodaj komentarz
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<div class="mt-4">
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit Project</a>
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-</div>
-
-<style>
-.comments-container {
-    max-width: 100%;
-}
-
-.comment-item {
-    background-color: #f8f9fa;
-    transition: box-shadow 0.2s ease;
-}
-
-.comment-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.avatar-circle {
-    width: 32px;
-    height: 32px;
-    background-color: #6c757d;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.comment-content {
-    line-height: 1.5;
-    word-wrap: break-word;
-}
-
-.comment-actions {
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-}
-
-.comment-item:hover .comment-actions {
-    opacity: 1;
-}
-
-@* @media (max-width: 768px) {
-    .comment-header {
-        flex-direction: column;
-        align-items: flex-start !important;
-    }
-    
-    .comment-actions {
-        margin-top: 8px;
-        opacity: 1;
-    }
-} *@
-</style>
-
