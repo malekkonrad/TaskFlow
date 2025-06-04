@@ -12,7 +12,6 @@ public class StatusTest
 
     public StatusTest(string baseUrl, string username, string token)
     {
-        // Konstruktor może być użyty do inicjalizacji, jeśli potrzebne
         this.baseUrl = baseUrl;
         this.username = username;
         this.token = token;
@@ -24,13 +23,9 @@ public class StatusTest
 
         try
         {
-
-            // Test GET - pobieranie wszystkich projektów
             await TestGetAllStatuses();
 
-            // Test POST - dodawanie nowego taska
             int newStatusId = await TestCreateStatus();
-            // await TestGetAllTasks(projectId);
 
             await TestGetStatus(newStatusId);
 
@@ -79,8 +74,6 @@ public class StatusTest
 
         try
         {
-
-            // POST nowy task
             var statusData = new
             {
                 Name = "Test Status",

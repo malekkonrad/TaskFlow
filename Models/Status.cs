@@ -9,6 +9,4 @@ public class Status
 
     [Required]
     public string Name { get; set; } = string.Empty;
-
-    // public ICollection<UserTask> Tasks { get; set; } = new List<UserTask>();
 }

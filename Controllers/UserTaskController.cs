@@ -49,61 +49,11 @@ public class UserTaskController : Controller
         return View(userTask);
     }
 
-    // // GET: UserTask/Create
-    // public IActionResult Create(int? projectId)
-    // {
-
-    //     var currentUserId = GetCurrentUserId();
-
-    //     var users = new List<User>();
-    //     if (projectId.HasValue)
-    //     {
-    //         // Get users that are members of the specified project
-    //         var projectMembers = _context.ProjectMembers
-    //             .Where(pm => pm.ProjectId == projectId)
-    //             .Select(pm => pm.User)
-    //             .ToList();
-    //         users.AddRange(projectMembers);
-
-    //         users.AddRange(_context.Users
-    //             .Where(u => u.OwnedProjects.Any(p => p.Id == projectId.Value))
-    //             .ToList());
-    //     }
-    //     else
-    //     {
-    //         // If no project specified, use all users
-    //         users = _context.Users.ToList();
-    //     }
-
-    //     // Create item for "Unassigned" option
-    //     var unassignedItem = new SelectListItem { Value = "", Text = "-- Unassigned --" };
-    //     var selectItems = users.Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.Id == currentUserId ? "-- Me --" : u.UserName }).ToList();
-    //     selectItems.Insert(0, unassignedItem);  // Add unassigned at the beginning
-
-    //     ViewData["AssigneeId"] = new SelectList(selectItems, "Value", "Text");
-    //     if (projectId.HasValue)
-    //     {
-    //         // Jeśli mamy projectId, ustaw go jako wybrany i pokaż tylko ten projekt
-    //         ViewData["ProjectId"] = new SelectList(_context.Projects.Where(p => p.Id == projectId), "Id", "Name", projectId);
-    //         ViewData["SelectedProjectId"] = projectId;
-    //     }
-    //     else
-    //     {
-    //         // Jeśli nie ma projectId, pokaż wszystkie projekty
-    //         ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Name");
-    //     }
-
-    //     ViewData["StatusId"] = new SelectList(_context.Statuses, "Id", "Name");
-    //     return View();
-    // }
-
 
     // GET: UserTask/Create
     public IActionResult Create(int? projectId, int? selectedProjectId)
     {
         var currentUserId = GetCurrentUserId();
-        
-        // Pobierz wszystkie projekty użytkownika
         var userProjects = _context.Projects
             .Where(p => p.OwnerId == currentUserId || p.Members.Any(m => m.UserId == currentUserId))
             .ToList();
@@ -111,19 +61,16 @@ public class UserTaskController : Controller
         ViewBag.ProjectId = new SelectList(userProjects, "Id", "Name", selectedProjectId ?? projectId);
         ViewBag.StatusId = new SelectList(_context.Statuses, "Id", "Name");
         
-        // KLUCZOWA CZĘŚĆ: Jeśli wybrano projekt (selectedProjectId lub projectId)
         if (selectedProjectId.HasValue || projectId.HasValue)
         {
             var chosenProjectId = selectedProjectId ?? projectId;
             
-            // Pobierz członków wybranego projektu
             var projectMembers = _context.ProjectMembers
                 .Where(pm => pm.ProjectId == chosenProjectId)
                 .Include(pm => pm.User)
                 .Select(pm => pm.User)
                 .ToList();
-            
-            // Pobierz właściciela projektu
+
             var projectOwner = _context.Projects
                 .Where(p => p.Id == chosenProjectId)
                 .Include(p => p.Owner)
@@ -133,11 +80,9 @@ public class UserTaskController : Controller
             var users = new List<User>();
             if (projectOwner != null) users.Add(projectOwner);
             users.AddRange(projectMembers);
-            
-            // Usuń duplikaty
+
             users = users.GroupBy(u => u.Id).Select(g => g.First()).ToList();
-            
-            // Przygotuj listę assignee
+
             var unassignedItem = new SelectListItem { Value = "", Text = "-- Unassigned --" };
             var selectItems = users.Select(u => new SelectListItem { 
                 Value = u.Id.ToString(), 
@@ -146,49 +91,35 @@ public class UserTaskController : Controller
             selectItems.Insert(0, unassignedItem);
             
             ViewData["AssigneeId"] = new SelectList(selectItems, "Value", "Text");
-            ViewData["SelectedProjectId"] = chosenProjectId; // Oznacz że projekt został wybrany
+            ViewData["SelectedProjectId"] = chosenProjectId; 
         }
         else
         {
-            // Brak wybranego projektu - pusta lista assignee
             ViewData["AssigneeId"] = new SelectList(new List<SelectListItem>(), "Value", "Text");
         }
         
         return View();
     }
 
-    // NOWA AKCJA: Obsługuje tylko wybór projektu
     [HttpPost]
     public IActionResult SelectProject(int projectId)
     {
-        // Przekieruj z powrotem do Create z wybranym projektem
         return RedirectToAction("Create", new { selectedProjectId = projectId });
     }
     
 
 
-
-
-
-
-
-
-
-
     // POST: UserTask/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Title,Description,Deadline,ProjectId,AssigneeId,StatusId")] UserTask userTask)
     {
         if (ModelState.IsValid)
         {
-            userTask.CreatedAt = DateTime.Now; // Ustawienie daty utworzenia na teraz
+            userTask.CreatedAt = DateTime.Now; 
 
             _context.Add(userTask);
             await _context.SaveChangesAsync();
-            // Po utworzeniu taska, przekieruj z powrotem do szczegółów projektu
             return RedirectToAction("Details", "Project", new { id = userTask.ProjectId });
         }
         ViewData["AssigneeId"] = new SelectList(_context.Users, "Id", "UserName", userTask.AssigneeId);
@@ -217,8 +148,6 @@ public class UserTaskController : Controller
     }
 
     // POST: UserTask/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,CreatedAt,Deadline,ProjectId,AssigneeId,StatusId")] UserTask userTask)

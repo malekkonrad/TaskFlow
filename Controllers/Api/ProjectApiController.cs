@@ -74,23 +74,17 @@ public class ProjectApiController : ControllerBase
 
 
         var user = await AuthenticateUser(Request);
-        var id_owner = user?.Id ?? -1; // Default to 2 if user is null, for testing purposes
-        // var id_owner = int.Parse(HttpContext.Session.GetString("Id") ?? "2");
-        // Console.WriteLine($"Creating project for owner ID: {id_owner}");
-        // var owner = await _context.Users.FindAsync(id_owner);
-        // Console.WriteLine($"Owner found: {owner?.UserName}");
+        var id_owner = user?.Id ?? -1; 
 
         var project = new Project
         {
             
             Name = projectDTO.Name,
             OwnerId = id_owner,
-            Owner = user, // Set the owner of the project
-            // Owner = owner, // Set the owner of the project
-            Description = projectDTO.Description, // Add this line
-            Members = new List<ProjectMember>(), // Initialize Members collection
-                                                 // Tasks = new List<Task>(), // Initialize Tasks collection
-            IsPublic = projectDTO.IsPublic // Default value, can be changed later
+            Owner = user, 
+            Description = projectDTO.Description, 
+            Members = new List<ProjectMember>(),                   
+            IsPublic = projectDTO.IsPublic 
         };
 
         _context.Projects.Add(project);
@@ -122,11 +116,6 @@ public class ProjectApiController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProject(int id)
     {
-        // var user = await AuthenticateUser();
-        // if (user == null)
-        // {
-        //     return Unauthorized("Invalid username or API token");
-        // }
         if (!IsAuthorized(Request)) return Unauthorized();
         if (_context.Projects == null) return NotFound(); 
 

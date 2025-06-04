@@ -62,8 +62,6 @@ public class ProjectController : Controller
     }
 
     // POST: Project/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Name,Description,IsPublic")] Project project)
@@ -101,9 +99,7 @@ public class ProjectController : Controller
         .Select(pm => pm.UserId)
         .ToListAsync();
 
-        memberIds.Add(project.OwnerId); // Include owner as a member
-
-        // Get the actual User objects for the SelectList
+        memberIds.Add(project.OwnerId); 
         var members = await _context.Users
             .Where(u => memberIds.Contains(u.Id))
             .ToListAsync();
@@ -113,8 +109,6 @@ public class ProjectController : Controller
     }
 
     // POST: Project/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,IsPublic,OwnerId")] Project project)
@@ -166,7 +160,6 @@ public class ProjectController : Controller
             return NotFound();
         }
 
-        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
         var currentUserId = GetCurrentUserId();
         if (project.OwnerId != currentUserId)
         {
@@ -188,7 +181,6 @@ public class ProjectController : Controller
         }
         var project = await _context.Projects.FindAsync(id);
 
-        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
         var currentUserId = GetCurrentUserId();
         if (project != null && project.OwnerId != currentUserId)
         {
@@ -207,7 +199,6 @@ public class ProjectController : Controller
     }
 
 
-    // project members
     // GET: Project/Members/5
     public async Task<IActionResult> Members(int? id)
     {
@@ -227,7 +218,6 @@ public class ProjectController : Controller
             return NotFound();
         }
 
-        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
         var currentUserId = GetCurrentUserId();
         if (project.OwnerId != currentUserId)
         {
@@ -252,9 +242,7 @@ public class ProjectController : Controller
         {
             return NotFound();
         }
-        
-
-        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
+  
         var currentUserId = GetCurrentUserId();
         if (project.OwnerId != currentUserId)
         {
@@ -268,7 +256,6 @@ public class ProjectController : Controller
             return RedirectToAction(nameof(Members), new { id = project.Id });
         }
 
-        // Pobierz użytkowników którzy nie są jeszcze członkami projektu
         var existingMemberIds = await _context.ProjectMembers
             .Where(pm => pm.ProjectId == id)
             .Select(pm => pm.UserId)
@@ -293,7 +280,6 @@ public class ProjectController : Controller
     {
         if (ModelState.IsValid)
         {
-            // Sprawdź czy projekt istnieje i czy aktualny użytkownik jest właścicielem
             var project = await _context.Projects.FindAsync(projectMember.ProjectId);
             if (project == null)
             {
@@ -307,7 +293,6 @@ public class ProjectController : Controller
                 return RedirectToAction(nameof(Index));
             }
 
-            // Sprawdź czy użytkownik nie jest już członkiem projektu
             var existingMember = await _context.ProjectMembers
                 .FirstOrDefaultAsync(pm => pm.ProjectId == projectMember.ProjectId && pm.UserId == projectMember.UserId);
 
@@ -340,7 +325,6 @@ public class ProjectController : Controller
             return NotFound();
         }
 
-        // Sprawdź czy aktualny użytkownik jest właścicielem projektu
         var currentUserId = GetCurrentUserId();
         if (project.OwnerId != currentUserId)
         {
@@ -359,10 +343,6 @@ public class ProjectController : Controller
 
         return RedirectToAction(nameof(Members), new { id = projectId });
     }
-
-
-
-
 
 
 

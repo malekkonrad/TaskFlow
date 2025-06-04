@@ -12,7 +12,6 @@ public class CommentTest
 
     public CommentTest(string baseUrl, string username, string token)
     {
-        // Konstruktor może być użyty do inicjalizacji, jeśli potrzebne
         this.baseUrl = baseUrl;
         this.username = username;
         this.token = token;
@@ -31,9 +30,7 @@ public class CommentTest
             TaskTest taskTest = new TaskTest(baseUrl, username, token);
             int taskId = await taskTest.TestCreateTask(projectId);
 
-            // Test GET - pobieranie wszystkich projektów
             await TestGetAllComments(projectId, taskId);
-
 
             int newCommentId = await TestCreateComment(projectId, taskId);
 

@@ -64,7 +64,7 @@ public class UserTaskApiController : ControllerBase
 
 
         var user = await AuthenticateUser(Request);
-        var id_owner = user?.Id ?? -1; // Default to 2 if user is null, for testing purposes
+        var id_owner = user?.Id ?? -1; 
         
         var project = await _context.Projects
             .Include(p => p.Members)
@@ -72,20 +72,17 @@ public class UserTaskApiController : ControllerBase
 
         if (project == null) return NotFound("Project not found");
 
-        // Tylko właściciel lub członek może dodać task
         if (project.OwnerId != user.Id && !project.Members.Any(m => m.UserId == user.Id))
         {
             return Forbid("Only project owner or members can create tasks");
         }
 
-        // Sprawdź czy AssigneeId istnieje i ma dostęp do projektu
         User? assignee = null;
         if (userTaskDTO.AssigneeId.HasValue)
         {
             assignee = await _context.Users.FindAsync(userTaskDTO.AssigneeId.Value);
             if (assignee == null) return BadRequest("Assignee not found");
 
-            // Sprawdź czy assignee ma dostęp do projektu
             if (project.OwnerId != assignee.Id && !project.Members.Any(m => m.UserId == assignee.Id))
             {
                 return BadRequest("Assignee must be project owner or member");
@@ -98,16 +95,13 @@ public class UserTaskApiController : ControllerBase
             Description = userTaskDTO.Description,
             ProjectId = projectId,
             AssigneeId = userTaskDTO.AssigneeId,
-            // StatusId = userTaskDTO.StatusId ?? 1, // Domyślny status "To Do"
             CreatedAt = DateTime.UtcNow,
-            // Deadline = userTaskDTO.Deadline
         };
 
 
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();
 
-        // Pobierz task z relacjami dla zwrócenia
         var createdTask = await _context.Tasks
             .Include(t => t.Assignee)
             .Include(t => t.Status)
@@ -135,7 +129,6 @@ public class UserTaskApiController : ControllerBase
 
         if (task == null) return NotFound("Task not found");
 
-        // Tylko właściciel projektu, członek lub assignee może modyfikować task
         if (project.OwnerId != user.Id && 
             !project.Members.Any(m => m.UserId == user.Id) && 
             task.AssigneeId != user.Id)
@@ -143,7 +136,6 @@ public class UserTaskApiController : ControllerBase
             return Forbid("You don't have permission to modify this task");
         }
 
-        // Sprawdź czy nowy AssigneeId istnieje i ma dostęp do projektu
         if (taskDTO.AssigneeId.HasValue)
         {
             var assignee = await _context.Users.FindAsync(taskDTO.AssigneeId.Value);
@@ -158,8 +150,6 @@ public class UserTaskApiController : ControllerBase
         task.Title = taskDTO.Title;
         task.Description = taskDTO.Description;
         task.AssigneeId = taskDTO.AssigneeId;
-        // task.StatusId = taskDTO.StatusId ?? task.StatusId;
-        // task.Deadline = taskDTO.Deadline;
 
         _context.Entry(task).State = EntityState.Modified;
         await _context.SaveChangesAsync();
@@ -185,7 +175,6 @@ public class UserTaskApiController : ControllerBase
 
         if (task == null) return NotFound("Task not found");
 
-        // Tylko właściciel projektu lub assignee może usunąć task
         if (project.OwnerId != user.Id && task.AssigneeId != user.Id)
         {
             return Forbid("Only project owner or task assignee can delete this task");
@@ -202,9 +191,6 @@ public class UserTaskApiController : ControllerBase
 
     // private
 
-
-
-
     private static UserTaskDTO ItemToDTO(UserTask userTask) => new UserTaskDTO
     {
         Id = userTask.Id,
@@ -214,8 +200,6 @@ public class UserTaskApiController : ControllerBase
         AssigneeId = userTask.AssigneeId
 
     };
-
-
 
     private async Task<User?> GetAuthorizedUser(HttpRequest request)
     {
@@ -230,8 +214,6 @@ public class UserTaskApiController : ControllerBase
         return await _context.Users
             .FirstOrDefaultAsync(u => u.UserName == username && u.ApiToken == token);
     }
-
-
 
     private bool IsAuthorized(HttpRequest request)
     {
@@ -259,12 +241,10 @@ public class UserTaskApiController : ControllerBase
 
         if (project == null) return false;
 
-        // Użytkownik ma dostęp jeśli jest właścicielem, członkiem lub projekt jest publiczny
         return project.OwnerId == user.Id ||
                project.Members.Any(m => m.UserId == user.Id);
     }
     
-
     private async Task<User?> AuthenticateUser(HttpRequest request)
     {
         var username = request.Headers["username"].FirstOrDefault();

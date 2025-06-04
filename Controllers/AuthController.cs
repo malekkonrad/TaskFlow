@@ -15,7 +15,6 @@ public class AuthController : Controller
     public AuthController(AppDbContext context)
     {
         _context = context;
-        // EnsureAdminExists();
     }
 
 
@@ -56,5 +55,3 @@ public class AuthController : Controller
     }
 
 }
-
-

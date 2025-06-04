@@ -12,7 +12,6 @@ public class TaskTest
 
     public TaskTest(string baseUrl, string username, string token)
     {
-        // Konstruktor może być użyty do inicjalizacji, jeśli potrzebne
         this.baseUrl = baseUrl;
         this.username = username;
         this.token = token;
@@ -24,19 +23,12 @@ public class TaskTest
 
         try
         {
-            // Test autoryzacji
-            // await TestAuthorization();
-
-            // stowrzenie projektu do testów
             ProjectTest projectTest = new ProjectTest(baseUrl, username, token);
             int projectId = await projectTest.TestCreateProject();
 
-            // Test GET - pobieranie wszystkich projektów
             await TestGetAllTasks(projectId);
 
-            // Test POST - dodawanie nowego taska
             int newTaskId = await TestCreateTask(projectId);
-            // await TestGetAllTasks(projectId);
 
             await TestGetTask(projectId, newTaskId);
 
@@ -86,7 +78,6 @@ public class TaskTest
         try
         {
 
-            // POST nowy task
             var taskData = new
             {
                 Title = "Test Task",

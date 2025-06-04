@@ -54,34 +54,17 @@ public class CommentController : Controller
     }
 
     // POST: Comment/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Content,TaskItemId")] Comment comment)
     {
         if (ModelState.IsValid)
         {
-            Console.WriteLine("Creating comment for TaskItemId: " + comment.TaskItemId);
             comment.AuthorId = GetCurrentUserId();
             comment.CreatedAt = DateTime.Now;
-
-
-
-            // DEBUG: Sprawdź wartości przed zapisem
-            Console.WriteLine($"=== DEBUG COMMENT CREATE ===");
-            Console.WriteLine($"TaskItemId: {comment.TaskItemId}");
-            Console.WriteLine($"AuthorId: {comment.AuthorId}");
-            Console.WriteLine($"Content: {comment.Content}");
-            
-            // Sprawdź czy task istnieje
             var taskExists = await _context.Tasks.AnyAsync(t => t.Id == comment.TaskItemId);
-            Console.WriteLine($"Task exists: {taskExists}");
-            
-            // Sprawdź czy user istnieje
             var userExists = await _context.Users.AnyAsync(u => u.Id == comment.AuthorId);
-            Console.WriteLine($"User exists: {userExists}");
-            
+
             if (!taskExists)
             {
                 Console.WriteLine($"ERROR: Task with ID {comment.TaskItemId} does not exist!");
@@ -94,22 +77,10 @@ public class CommentController : Controller
                 return RedirectToAction("Login", "Auth");
             }
 
-
-
-
-
-
-
-
-
-            Console.WriteLine("AuthorId: " + comment.AuthorId);
             _context.Add(comment);
             await _context.SaveChangesAsync();
             return RedirectToAction("Details", "UserTask", new { id = comment.TaskItemId });
         }
-        Console.WriteLine("w w w w Creating comment for TaskItemId: " + comment.TaskItemId);
-        // ViewData["AuthorId"] = new SelectList(_context.Set<User>(), "Id", "UserName", comment.AuthorId);
-        // return View(comment);
         return RedirectToAction("Details", "UserTask", new { id = comment.TaskItemId });
     }
 
@@ -131,8 +102,6 @@ public class CommentController : Controller
     }
 
     // POST: Comment/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Content,CreatedAt,TaskItemId,AuthorId")] Comment comment)

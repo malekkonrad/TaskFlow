@@ -12,7 +12,6 @@ public class ProjectTest
 
     public ProjectTest(string baseUrl, string username, string token)
     {
-        // Konstruktor może być użyty do inicjalizacji, jeśli potrzebne
         this.baseUrl = baseUrl;
         this.username = username;
         this.token = token;
@@ -24,32 +23,24 @@ public class ProjectTest
 
         try
         {
-            // Test autoryzacji
             await TestAuthorization();
 
-            // Test GET - pobieranie wszystkich projektów
             await TestGetAllProjects();
 
-            // Test POST - dodawanie nowego projektu
             int newProjectId = await TestCreateProject();
 
             await TestGetAllProjects();
 
             if (newProjectId > 0)
             {
-                // Test GET - pobieranie konkretnego projektu
                 await TestGetProject(newProjectId);
 
-                // Test PUT - modyfikacja projektu
                 await TestUpdateProject(newProjectId);
 
-                // Test GET - pobieranie konkretnego projektu
                 await TestGetProject(newProjectId);
 
-                // Test DELETE - usuwanie projektu
                 await TestDeleteProject(newProjectId);
 
-                // Test GET - pobieranie konkretnego projektu
                 await TestGetProject(newProjectId);
             }
 

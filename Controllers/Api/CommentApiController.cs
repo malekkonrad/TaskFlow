@@ -64,7 +64,7 @@ public class CommentApiController : ControllerBase
 
 
         var user = await AuthenticateUser(Request);
-        var id_owner = user?.Id ?? -1; // Default to 2 if user is null, for testing purposes
+        var id_owner = user?.Id ?? -1; 
         
         var project = await _context.Projects
             .Include(p => p.Members)
@@ -73,19 +73,16 @@ public class CommentApiController : ControllerBase
         if (project == null) return NotFound("Project not found");
 
 
-        // Tylko właściciel lub członek może dodać task
         if (project.OwnerId != user.Id && !project.Members.Any(m => m.UserId == user.Id))
         {
             return Forbid("Only project owner or members can create tasks");
         }
 
-        // Sprawdź czy Author ma dostęp do projektu 
         User? author = null;
         if (commentDTO.AuthorId.HasValue)
         {
             author = await _context.Users.FindAsync(commentDTO.AuthorId.Value);
 
-            // Sprawdź czy author ma dostęp do projektu - może być nullem
             if (author != null)
             {
                 if (project.OwnerId != author.Id && !project.Members.Any(m => m.UserId == author.Id))
@@ -101,7 +98,7 @@ public class CommentApiController : ControllerBase
         {
             Content = commentDTO.Content,
             TaskItemId = taskId,
-            AuthorId = author?.Id, // Może być null jeśli nie podano AuthorId
+            AuthorId = author?.Id, 
             CreatedAt = DateTime.UtcNow
         };
 
@@ -109,11 +106,6 @@ public class CommentApiController : ControllerBase
         _context.Comments.Add(comment);
         await _context.SaveChangesAsync();
 
-        // Pobierz task z relacjami dla zwrócenia
-        // var createdTask = await _context.Tasks
-        //     .Include(t => t.Assignee)
-        //     .Include(t => t.Status)
-        //     .FirstAsync(t => t.Id == comment.Id);
         return CreatedAtAction(nameof(GetProjectTaskComment), new { projectId = projectId, taskId = taskId, commentId = comment.Id }, ItemToDTO(comment));
     }
 
@@ -135,14 +127,10 @@ public class CommentApiController : ControllerBase
 
         if (task == null) return NotFound("Task not found");
 
-        // Tylko właściciel projektu, członek lub assignee może modyfikować task
         if (commentDTO.AuthorId.HasValue && commentDTO.AuthorId != user.Id)
         {
-            // return Forbid("Only author of the comment can update it");
-
             var author = await _context.Users.FindAsync(commentDTO.AuthorId.Value);
 
-            // Sprawdź czy author ma dostęp do projektu - może być nullem
             if (author != null)
             {
                 if (project.OwnerId != author.Id && !project.Members.Any(m => m.UserId == author.Id))
@@ -159,7 +147,7 @@ public class CommentApiController : ControllerBase
         if (comment == null) return NotFound("Comment not found");
 
         comment.Content = commentDTO.Content;
-        comment.AuthorId = commentDTO.AuthorId; // Może być null jeśli nie podano AuthorId
+        comment.AuthorId = commentDTO.AuthorId; 
 
 
         _context.Entry(comment).State = EntityState.Modified;
@@ -186,7 +174,6 @@ public class CommentApiController : ControllerBase
 
         if (task == null) return NotFound("Task not found");
 
-        // Tylko właściciel projektu lub assignee może usunąć task
         if (project.OwnerId != user.Id && task.AssigneeId != user.Id)
         {
             return Forbid("Only project owner or task assignee can delete this task");
@@ -196,7 +183,7 @@ public class CommentApiController : ControllerBase
             .FirstOrDefaultAsync(c => c.Id == commentId && c.TaskItemId == taskId && c.Task.ProjectId == projectId);
 
         if (comment == null) return NotFound("Comment not found");
-        // Sprawdź czy autor ma dostęp do projektu - może być nullem
+    
         if (comment.AuthorId.HasValue)
         {
             var author = await _context.Users.FindAsync(comment.AuthorId.Value);
@@ -217,9 +204,6 @@ public class CommentApiController : ControllerBase
 
     // private
 
-
-
-
     private static CommentDTO ItemToDTO(Comment comment) => new CommentDTO
     {
         Id = comment.Id,
@@ -227,8 +211,6 @@ public class CommentApiController : ControllerBase
         TaskItemId = comment.TaskItemId,
         AuthorId = comment.Author?.Id
     };
-
-
 
     private async Task<User?> GetAuthorizedUser(HttpRequest request)
     {
@@ -243,9 +225,6 @@ public class CommentApiController : ControllerBase
         return await _context.Users
             .FirstOrDefaultAsync(u => u.UserName == username && u.ApiToken == token);
     }
-
-
-
     private bool IsAuthorized(HttpRequest request)
     {
 
@@ -272,7 +251,6 @@ public class CommentApiController : ControllerBase
 
         if (project == null) return false;
 
-        // Użytkownik ma dostęp jeśli jest właścicielem, członkiem lub projekt jest publiczny
         return project.OwnerId == user.Id ||
                project.Members.Any(m => m.UserId == user.Id);
     }
