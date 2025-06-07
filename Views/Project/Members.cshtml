@@ -6,15 +6,12 @@
 
 <h1>Członkowie projektu: @Model.Name</h1>
 
-
 @if (TempData["ErrorMessage"] != null)
 {
     <div class="alert alert-danger">
         @TempData["ErrorMessage"]
     </div>
 }
-
-
 
 <div class="mb-3">
     <a asp-action="AddMember" asp-route-id="@Model.Id" class="btn btn-primary">
