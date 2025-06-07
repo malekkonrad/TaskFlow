@@ -41,7 +41,7 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-controller="UserTask" asp-action="Details" asp-route-id="@Model?.TaskItemId">Back to Task</a>
 </div>
 
 @section Scripts {

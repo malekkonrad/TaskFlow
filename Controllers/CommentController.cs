@@ -129,7 +129,7 @@ public class CommentController : Controller
                     throw;
                 }
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Details", "UserTask", new { id = comment.TaskItemId });
         }
         ViewData["AuthorId"] = new SelectList(_context.Set<User>(), "Id", "UserName", comment.AuthorId);
         return View(comment);
@@ -163,14 +163,17 @@ public class CommentController : Controller
         {
             return Problem("Entity set 'CommentContext.Comment'  is null.");
         }
+
         var comment = await _context.Comments.FindAsync(id);
+        int idToDelete = comment?.TaskItemId ?? 0;
         if (comment != null)
         {
             _context.Comments.Remove(comment);
         }
 
         await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        // return RedirectToAction(nameof(Index));
+        return RedirectToAction("Details", "UserTask", new { id = idToDelete });
     }
 
     private bool CommentExists(int id)
